@@ -27,8 +27,24 @@ cp "$REPO_DIR/scripts/claude-scaffold.sh"         "$SCRIPTS_DEST/claude-scaffold
 chmod +x "$SCRIPTS_DEST/claude-scaffold.sh"
 
 # --- subagents (user-level: available in every Claude Code session) ---
-# Only copies our 5 named agents — won't touch other agents you have.
-for agent in planner-and-qc-lead developer math-reviewer auditor data-scientist; do
+# Only copies our named agents — won't touch other agents you have at ~/.claude/agents/.
+AGENTS=(
+    # Core team (always-applicable workflow agents)
+    planner-and-qc-lead
+    developer
+    math-reviewer
+    auditor
+    data-scientist
+    # Domain specialists (use as needed)
+    visualizer
+    optimization-modeller
+    gis-analyst
+    data-collector
+    debugger
+    refactor-architect
+    doc-writer
+)
+for agent in "${AGENTS[@]}"; do
     if [ -f "$REPO_DIR/agents/$agent.md" ]; then
         cp "$REPO_DIR/agents/$agent.md" "$AGENTS_DEST/$agent.md"
     fi
@@ -36,6 +52,6 @@ done
 
 echo "    templates  -> $DEST/"
 echo "    scaffold   -> $SCRIPTS_DEST/claude-scaffold.sh"
-echo "    agents     -> $AGENTS_DEST/{planner-and-qc-lead,developer,math-reviewer,auditor,data-scientist}.md"
+echo "    agents     -> $AGENTS_DEST/ (${#AGENTS[@]} agents)"
 echo ""
 echo "Done."
