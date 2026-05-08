@@ -29,20 +29,25 @@ chmod +x "$SCRIPTS_DEST/claude-scaffold.sh"
 # --- subagents (user-level: available in every Claude Code session) ---
 # Only copies our named agents — won't touch other agents you have at ~/.claude/agents/.
 AGENTS=(
-    # Core team (always-applicable workflow agents)
+    # Tier 1: Workflow orchestration
     planner-and-qc-lead
+    # Tier 2: Code — writing & review
     developer
     math-reviewer
     auditor
+    refactor-architect
+    debugger
+    # Tier 3: Code — domain specialists
     data-scientist
-    # Domain specialists (use as needed)
-    visualizer
     optimization-modeller
     gis-analyst
     data-collector
-    debugger
-    refactor-architect
+    visualizer
     doc-writer
+    # Tier 4: Research & analysis (no code)
+    energy-finance-team
+    investment-asset-team
+    writing-support-team
 )
 for agent in "${AGENTS[@]}"; do
     if [ -f "$REPO_DIR/agents/$agent.md" ]; then

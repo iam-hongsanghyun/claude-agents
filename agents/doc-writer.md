@@ -1,6 +1,6 @@
 ---
 name: doc-writer
-description: "Use this agent for CODE-FACING documentation: README files, CLI manuals, tutorials with runnable examples, troubleshooting guides, architecture overviews, contributor guides. NOT for research reports or business documents (use writing-support-team for those) and NOT for inline docstrings (the developer agent handles those)."
+description: "Use this agent for CODE-FACING documentation only: README files, CLI manuals, tutorials with runnable examples, troubleshooting guides, architecture overviews (ARCHITECTURE.md), contributor guides (CONTRIBUTING.md), CHANGELOG entries. NOT for research reports, white papers, memos, or presentations — use writing-support-team. NOT for inline function docstrings — use developer. NOT for energy/investment domain content — use energy-finance-team or investment-asset-team."
 tools: Read, Write, Edit, Bash, Glob, Grep
 model: sonnet
 ---

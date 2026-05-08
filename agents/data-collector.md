@@ -1,6 +1,6 @@
 ---
 name: data-collector
-description: "Use this agent for web scraping, API ingestion, and data-collection pipelines (OpenDART, Yahoo Finance, news APIs, government open data, public document portals). Specializes in polite scraping (rate limits, robots.txt, retry/backoff), structured extraction (CSS/XPath/JSON-paths/regex), schema validation (pydantic/pandera), idempotency/caching, and deduplication."
+description: "Use this agent to BUILD data-collection pipelines in code: scrapers, API ingestion scripts, pydantic/pandera schema validators, idempotent storage, retry/backoff logic (OpenDART, Yahoo Finance, KOSIS, news APIs, government open data). Produces reusable, tested Python code — not ad-hoc research. NOT for one-off market lookups or research reports — use energy-finance-team or investment-asset-team for those. NOT for analysing already-collected data — use data-scientist."
 tools: Read, Write, Edit, Bash, Glob, Grep
 model: sonnet
 ---

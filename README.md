@@ -16,7 +16,7 @@ This repo is the source of truth. Local working copy at `~/.claude/templates/` i
 | [`.env.example`](./.env.example) | Environment variable template (incl. `RANDOM_SEED`). |
 | [`.gitignore`](./.gitignore) | Python + scientific-stack ignores (`data/`, `mlruns/`, `*.parquet`, etc.). |
 | [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) | uv-based CI (Python 3.11 + 3.12). |
-| [`agents/`](./agents/) | 5 user-level subagents auto-installed to `~/.claude/agents/` (see below). |
+| [`agents/`](./agents/) | 15 user-level subagents auto-installed to `~/.claude/agents/` (see below). |
 | [`scripts/claude-scaffold.sh`](./scripts/claude-scaffold.sh) | Bootstrap a new project from these templates. |
 | [`scripts/sync-to-local.sh`](./scripts/sync-to-local.sh) | Pull updates from this repo into `~/.claude/{templates,agents}/`. |
 | [`settings.json.example`](./settings.json.example) | Claude Code SessionStart hook to auto-create `CLAUDE.md` in new git repos. |
@@ -25,73 +25,98 @@ This repo is the source of truth. Local working copy at `~/.claude/templates/` i
 
 ## Subagents (user-level — available in every Claude Code session)
 
-After running `scripts/install.sh` or `scripts/sync-to-local.sh`, all 12 agents are installed to `~/.claude/agents/` and available in every project — no per-project setup needed.
+After running `scripts/install.sh` or `scripts/sync-to-local.sh`, all 15 agents are installed to `~/.claude/agents/` and available in every project — no per-project setup needed.
 
-### Core team (always-applicable workflow agents)
+See [`agents/README.md`](./agents/README.md) for the full role reference and disambiguation guide.
 
-| Agent | When to use |
-|---|---|
-| [`planner-and-qc-lead`](./agents/planner-and-qc-lead.md) | At the start of any non-trivial task. Plans, decomposes, produces a tailored QC checklist, routes work to other subagents. Does not write code. |
-| [`developer`](./agents/developer.md) | Implementation, refactoring, documenting code. Follows CLAUDE.md: type hints, Google docstrings with `Algorithm:` (LaTeX + ASCII), `uv`/`ruff`/`mypy`/`pytest`, no hardcoded values, `pint` units, reproducible seeds. |
-| [`math-reviewer`](./agents/math-reviewer.md) | Whenever math/numerics change. Cross-checks code vs docstring `Algorithm:`, `ALGORITHM.md`, references. Validates stability, sign conventions, indexing, tolerances, edge cases. Read-only. |
-| [`auditor`](./agents/auditor.md) | End-to-end pre-merge review. No hardcoded values, externalized config, `pint` units at boundaries, doc/code alignment, project layout, tooling clean. Read-only. |
-| [`data-scientist`](./agents/data-scientist.md) | EDA + ML + experiment analysis. **Specifically**: input/output data alignment (schemas, units, dtypes, time zones) + file-format best practice (parquet > CSV for numerical data, etc.). |
-
-### Domain specialists (use as needed)
+### Tier 1 — Workflow orchestration
 
 | Agent | When to use |
 |---|---|
-| [`visualizer`](./agents/visualizer.md) | Charts, maps, dashboards. matplotlib / seaborn / plotly / folium / pydeck. Catches legend-off-canvas, log-scale-zeros, twin-axis, color-blind-unsafe palettes; produces publication-ready figures. |
-| [`optimization-modeller`](./agents/optimization-modeller.md) | LP / MILP / NLP. PyPSA, linopy, pyomo, cvxpy. Formulation correctness, infeasibility debugging, solver tuning, duality interpretation. Distinct from `energy-finance-team` (research, not code). |
-| [`gis-analyst`](./agents/gis-analyst.md) | Geospatial work — geopandas, shapely, rasterio, xarray. Catches CRS bugs (#1 source of GIS errors), spatial-join pitfalls, raster/vector mismatches, choropleth binning issues. |
-| [`data-collector`](./agents/data-collector.md) | Web scraping, API ingestion (OpenDART, Yahoo Finance, news APIs, KOSIS, government open data). Polite scraping, retries, schema validation (pydantic/pandera), idempotent storage. |
-| [`debugger`](./agents/debugger.md) | Diagnosing bugs — crashes, wrong outputs, flaky tests. Reproduce → isolate → fix. Bisecting, hypothesis-driven log inspection, root-cause analysis (not symptom patching). |
-| [`refactor-architect`](./agents/refactor-architect.md) | Restructure existing code without changing behavior. Extract to utils, deduplicate, reduce coupling, remove dead code, simplify over-abstractions. Tests stay green at every step. |
-| [`doc-writer`](./agents/doc-writer.md) | Code-facing docs: README, CLI manuals, tutorials, troubleshooting. **Not** for research reports (use `writing-support-team`) or docstrings (use `developer`). Diátaxis-aware. |
+| [`planner-and-qc-lead`](./agents/planner-and-qc-lead.md) | Start of any non-trivial task. Plans, decomposes, produces QC checklist, routes to other agents. Does not write code or research. |
 
-### Recommended flow
+### Tier 2 — Code: writing & review
+
+| Agent | When to use |
+|---|---|
+| [`developer`](./agents/developer.md) | Implement features, refactor, write inline docstrings. Enforces CLAUDE.md: type hints, `Algorithm:` (LaTeX + ASCII), `uv`/`ruff`/`mypy`/`pytest`, `pint`, reproducible seeds. |
+| [`math-reviewer`](./agents/math-reviewer.md) | Whenever math/numerics change. Cross-checks code vs `Algorithm:` docstring vs `ALGORITHM.md`. Stability, sign conventions, indexing, tolerances, edge cases. **Read-only.** |
+| [`auditor`](./agents/auditor.md) | Pre-merge: no hardcoded values, config externalized, `pint` at boundaries, doc/code alignment, tooling clean. **Read-only.** |
+| [`refactor-architect`](./agents/refactor-architect.md) | Restructure code without changing behavior. Extract, deduplicate, reduce coupling, remove dead code. Tests stay green. |
+| [`debugger`](./agents/debugger.md) | Bugs — crashes, wrong outputs, flaky tests. Reproduce → isolate → fix (root cause, not symptom). |
+
+### Tier 3 — Code: domain specialists
+
+| Agent | When to use |
+|---|---|
+| [`data-scientist`](./agents/data-scientist.md) | EDA, ML, experiment analysis **in code**. Schema/dtype/unit alignment; file-format best practice (parquet > CSV). |
+| [`optimization-modeller`](./agents/optimization-modeller.md) | LP/MILP/NLP code: PyPSA, linopy, pyomo, cvxpy. Formulation, infeasibility debugging, solver tuning. **Not** energy market research (→ `energy-finance-team`). |
+| [`gis-analyst`](./agents/gis-analyst.md) | Geospatial code: geopandas, shapely, rasterio, xarray. CRS audits, spatial-join pitfalls, raster/vector mismatches. |
+| [`data-collector`](./agents/data-collector.md) | Build ingestion pipelines in code (OpenDART, Yahoo Finance, KOSIS, news APIs). Polite scraping, schema validation (pydantic/pandera), idempotent storage. **Not** ad-hoc research (→ research teams). |
+| [`visualizer`](./agents/visualizer.md) | Charts, maps, dashboards in code: matplotlib, seaborn, plotly, folium, pydeck. Publication-ready figures. |
+| [`doc-writer`](./agents/doc-writer.md) | **Code-facing docs only**: README, CLI manuals, tutorials, troubleshooting, ARCHITECTURE.md. **Not** research reports/memos (→ `writing-support-team`). |
+
+### Tier 4 — Research & analysis (no code)
+
+| Agent | When to use |
+|---|---|
+| [`energy-finance-team`](./agents/energy-finance-team.md) | Energy markets, ESG, climate finance, energy policy research → structured report. Uses web search, Yahoo Finance, DART. |
+| [`investment-asset-team`](./agents/investment-asset-team.md) | Portfolio, equity, bond/credit, risk analysis → structured investment report. Uses Yahoo Finance, DART, web research. |
+| [`writing-support-team`](./agents/writing-support-team.md) | Research reports, white papers, policy briefs, memos, presentations. **Not** code-facing docs (→ `doc-writer`). |
+
+### Quick disambiguation
+
+| Task | Agent |
+|---|---|
+| Research / find information about energy, ESG, climate | `energy-finance-team` |
+| Research / find information about stocks, portfolio, bonds | `investment-asset-team` |
+| Write a report, memo, or presentation | `writing-support-team` |
+| Write README / CLI docs / tutorial | `doc-writer` |
+| Implement Python code | `developer` |
+| Build a data-ingestion pipeline in code | `data-collector` |
+| Analyse data in code (EDA, ML) | `data-scientist` |
+| Write optimization model code | `optimization-modeller` |
+| Write a chart in code | `visualizer` |
+
+### Recommended flows
 
 ```
-planner-and-qc-lead   →   developer / domain specialist
-                      →   math-reviewer       (if math changed)
-                      →   data-scientist      (if data I/O changed)
-                      →   visualizer          (if any chart involved)
-                      →   auditor             (before merge)
-```
+# Feature development
+planner-and-qc-lead  →  developer
+                     →  math-reviewer     (if math changed)
+                     →  data-scientist    (if data I/O changed)
+                     →  visualizer        (if charts involved)
+                     →  auditor           (before merge)
 
-When the bug is the problem, route differently:
+# Bug fix
+debugger  →  developer  →  auditor
 
-```
-debugger (reproduce, isolate)   →   developer (apply fix)   →   auditor
-```
+# Refactor
+refactor-architect  →  auditor
 
-When the goal is restructuring (no behavior change):
+# Research → report
+energy-finance-team  or  investment-asset-team  →  writing-support-team
 
-```
-refactor-architect (plan + execute)   →   auditor (verify no regression)
+# Data pipeline
+data-collector  →  data-scientist  →  developer
 ```
 
 ### Invoking from Claude Code
 
 ```
 > Use the planner-and-qc-lead subagent to plan adding radiative forcing.
+> Use the developer subagent to implement it in src/ebm/core/forcing.py.
+> Use the math-reviewer subagent on src/ebm/core/forcing.py.
 > Use the optimization-modeller subagent on simplePyPSA_KR/network.py.
 > Use the gis-analyst subagent on the spatial join in gisanalysis/process.py.
 > Use the visualizer subagent to fix the legend in pypsa_gui/charts.py.
-> Use the math-reviewer subagent on src/ebm/core/forcing.py.
 > Use the auditor subagent on this branch before I merge.
+> Use the energy-finance-team subagent to research Korean offshore wind policy.
+> Use the investment-asset-team subagent to analyze KEPCO's debt profile.
+> Use the writing-support-team subagent to draft a policy brief on carbon markets.
+> Use the data-collector subagent to build a DART filing ingestion pipeline.
+> Use the doc-writer subagent to write the CLI manual for scripts/run_model.py.
 ```
-
-### Coexistence with your existing research / writing agents
-
-These code-facing agents are designed to **complement**, not replace, your existing `energy-finance-team`, `investment-asset-team`, and `writing-support-team` agents:
-
-| Task | Agent |
-|---|---|
-| Research / market analysis / reports | `energy-finance-team`, `investment-asset-team` |
-| Formal reports, memos, presentations | `writing-support-team` |
-| Build / debug / refactor / optimize **code** | the agents in this pack |
-| Code-facing docs (README, CLI manual, tutorial) | `doc-writer` (this pack) |
 
 ---
 
