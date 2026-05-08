@@ -16,9 +16,40 @@ This repo is the source of truth. Local working copy at `~/.claude/templates/` i
 | [`.env.example`](./.env.example) | Environment variable template (incl. `RANDOM_SEED`). |
 | [`.gitignore`](./.gitignore) | Python + scientific-stack ignores (`data/`, `mlruns/`, `*.parquet`, etc.). |
 | [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) | uv-based CI (Python 3.11 + 3.12). |
+| [`agents/`](./agents/) | 5 user-level subagents auto-installed to `~/.claude/agents/` (see below). |
 | [`scripts/claude-scaffold.sh`](./scripts/claude-scaffold.sh) | Bootstrap a new project from these templates. |
-| [`scripts/sync-to-local.sh`](./scripts/sync-to-local.sh) | Pull updates from this repo into `~/.claude/templates/`. |
+| [`scripts/sync-to-local.sh`](./scripts/sync-to-local.sh) | Pull updates from this repo into `~/.claude/{templates,agents}/`. |
 | [`settings.json.example`](./settings.json.example) | Claude Code SessionStart hook to auto-create `CLAUDE.md` in new git repos. |
+
+---
+
+## Subagents (user-level — available in every Claude Code session)
+
+After running `scripts/install.sh` or `scripts/sync-to-local.sh`, these agents are installed to `~/.claude/agents/` and available in every project — no per-project setup needed.
+
+| Agent | When to use |
+|---|---|
+| [`planner-and-qc-lead`](./agents/planner-and-qc-lead.md) | At the start of any non-trivial task. Plans the work, decomposes into reviewable steps, produces a tailored QC checklist, routes work to other subagents. Does **not** write code. |
+| [`developer`](./agents/developer.md) | Implementation, refactoring, documentation. Follows CLAUDE.md conventions: type hints, Google docstrings with `Algorithm:` section (LaTeX + ASCII), `uv`/`ruff`/`mypy`/`pytest`, no hardcoded values, `pint` units, reproducible seeds. |
+| [`math-reviewer`](./agents/math-reviewer.md) | Whenever math/numerics change. Cross-checks code against docstring `Algorithm:`, `ALGORITHM.md`, and references. Validates discretization stability, sign conventions, indexing, tolerances, edge cases. Read-only. |
+| [`auditor`](./agents/auditor.md) | End-to-end review before merge. Verifies no hardcoded values exist, all config is externalized, `pint` is used at boundaries, docstrings match implementations, project layout matches conventions, tooling (ruff/mypy/pytest) is clean. Read-only. |
+| [`data-scientist`](./agents/data-scientist.md) | EDA, statistics, ML prototyping, experiment analysis. **Specifically**: verifies input/output data alignment (schemas, units, dtypes, time zones) and that file formats follow best practice (parquet > CSV for numerical data, etc.). |
+
+### Recommended flow
+
+```
+planner-and-qc-lead   →   developer   →   math-reviewer (if math changed)
+                                       →   data-scientist (if data I/O changed)
+                                       →   auditor   (before merge)
+```
+
+### Invoking from Claude Code
+
+```
+> Use the planner-and-qc-lead subagent to plan adding radiative forcing.
+> Use the math-reviewer subagent on src/ebm/core/forcing.py.
+> Use the auditor subagent on this branch before I merge.
+```
 
 ---
 
