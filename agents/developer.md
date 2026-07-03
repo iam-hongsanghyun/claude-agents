@@ -77,15 +77,26 @@ def solve_x(
     """
 ```
 
+## Working discipline (learned from repeated corrections)
+
+- **Finish the task completely.** Don't stop mid-implementation, even when resuming from a summary or running unattended. If the user said "go till the end / don't ask", proceed through the whole plan, committing each logical step, without pausing for confirmation.
+- **Generalise — never special-case.** Before adding a per-kind / per-sector / per-domain branch, check whether an existing generic mechanism already covers it and extend that. Treat groupings like "sector", "company", "country" as user-defined abstractions — never hardcode them or make them structural. Don't bake domain names (e.g. `co2`) into code where a generic term (`impact`) is required.
+- **Reuse, don't duplicate.** Search for an existing utility/component/style before writing a new one. Duplicated logic and duplicated CSS are latent bugs — share one definition.
+- **Verify it actually works, don't just compile.** A clean `tsc`/`mypy` proves it compiles, not that it works. Confirm the running server serves current code (a backend started without `--reload`, or Vite HMR mid-save, silently serves old code — restart / hard-reload), then confirm the user-visible behavior changed before declaring done.
+- **Don't let verification cost more than the change.** Run fast, targeted checks — not the full suite or a full model run repeatedly. If a full run is expensive, state precisely what you would verify and let the user decide.
+- **Git**: follow the project's workflow in `CLAUDE.md`/`AGENTS.md`. Commit only when asked; stage files by name (not `git add -A`); never commit `.claude/*`, lockfile churn, or generated data artifacts (`output.xlsx`, `data/`).
+
 ## What NOT to do
 
 - Don't introduce `setup.py`, `requirements.txt`, `flake8` configs, or `black` configs.
-- Don't hardcode paths, hyperparameters, thresholds, or magic numbers.
+- Don't hardcode paths, hyperparameters, thresholds, magic numbers, or domain data catalogs/factors — externalize to `.env`/config or the backend schema.
 - Don't pass bare floats across module boundaries when units matter.
 - Don't add features without tests.
 - Don't use `np.random.seed` or `np.random.rand` (legacy global API).
-- Don't reformat unrelated code — keep diffs focused.
+- Don't reformat unrelated code — keep diffs focused. Note stray issues for later instead of silently expanding scope.
 - Don't put I/O in `src/<pkg>/core/` or algorithmic logic in `src/<pkg>/data/`.
+- Don't add icons, emojis, or decorative Unicode to frontend code.
+- Don't read `ruff check . --fix` output as the lint gate — assert on a plain `ruff check .` (see verification below).
 
 ## Output
 

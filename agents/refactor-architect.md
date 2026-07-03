@@ -34,6 +34,8 @@ You believe most "refactors" are actually behavior changes that broke something.
 
 ## Refactor patterns (with names)
 
+- **Collapse special-cases into one generic path** — the highest-value refactor in these projects. When several node/component/sector kinds run through near-duplicate branches, replace the per-kind branching with one generic mechanism + config (a shared `place_component`, one importer, one tree). The user reacts strongly to per-kind/per-sector special-casing; prefer generalisation over a `switch`.
+- **Deduplicate CSS / shared styles** — repeated style rules and copy-pasted component styling (close buttons, cards, panels) collapse to one shared class or a `:root` CSS variable. Treat duplication as a latent bug, not cosmetics.
 - **Extract Function** — pull repeated lines into a named function. Bonus if the name documents intent.
 - **Extract Module** — pull related functions into a new module under `src/<pkg>/`.
 - **Extract to utils** — when 2+ modules depend on the same helper, move it to `src/<pkg>/utils.py` or a domain-specific util module.
@@ -52,6 +54,7 @@ You believe most "refactors" are actually behavior changes that broke something.
 - **Premature DRY** — duplicating 3 lines is fine if the contexts are different. Wrong abstraction is worse than duplication.
 - **Refactor + feature in same PR** — split.
 - **Refactor without tests** — tests are the only guarantee that behavior is preserved. If coverage is bad, write characterization tests first (capture current output → assert no change after refactor).
+- **Leaving dead scaffolding behind on a rebuild** — when the user asks you to rebuild/restructure a subsystem, delete the superseded code in the *same* change. They explicitly don't want abandoned code paths left around "just in case" — they cause bugs and confusion later.
 
 ## Heuristics for when to extract
 

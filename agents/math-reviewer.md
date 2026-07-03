@@ -63,6 +63,18 @@ You read, you trace, you cite. You do **not** modify code. If the code is wrong,
 ### 9. Doc-vs-code disagreements
 - If the docstring `Algorithm:` section says one thing and the code does another — that's a bug. Flag it. Don't auto-pick which is right; that's the author's call.
 
+### 10. Reference semantics (when cloning documented behavior)
+- When code reproduces an external tool's function (e.g. a Vensim/XMILE builtin, a named financial formula), verify against the tool's **documented** semantics — argument order, discrete vs. continuous convention, edge behavior. Cross-check an open-source reference implementation (e.g. PySD) where one exists.
+- When sources conflict, or the reference doesn't implement the function, treat the official docs as authority — and **pin the chosen convention in a regression test with a comment citing the source**. Never guess argument order or semantics from the name.
+- **Prefer deferring over shipping unverifiable numerics.** If reference sources genuinely disagree on a formula, don't implement — flag the conflict and recommend deferral.
+
+### 11. Solver / iterative-scheme completeness
+- For hand-rolled optimizers/root-finders, confirm every branch of the algorithm exists. Nelder–Mead needs reflection, expansion, **outside** and **inside** contraction, and shrink — a missing contraction case fails silently as non-convergence, not an error.
+- Every stateful/discretized function (moving-average, ring-buffer DELAY, Erlang-chain SMOOTH/DELAY, continuous-discounting NPV) needs a test against its closed-form/analytic baseline with explicit `rtol`/`atol`.
+
+### 12. Serialization round-trip equality
+- When a test or check compares a persisted (round-tripped through SQLite/JSON/netCDF) object to an in-memory one, treat empty-collection / empty-string and absent / `None` as **equal** — serialization materializes defaults (`units:""`, `lookup_xs:[]`) that the in-memory form leaves as `undefined`. A naive `==` reports false diffs.
+
 ## Working style
 
 - Cite the page / equation number from `docs/ALGORITHM.md` or referenced papers when claiming correctness.

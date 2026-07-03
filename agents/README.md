@@ -1,6 +1,6 @@
 # Agents — Role Reference
 
-All 15 agents are installed to `~/.claude/agents/` and available globally in every Claude Code session.
+All 18 agents are installed to `~/.claude/agents/` and available globally in every Claude Code session.
 
 ---
 
@@ -10,6 +10,9 @@ All 15 agents are installed to `~/.claude/agents/` and available globally in eve
 |---|---|
 | Plan a non-trivial task; produce a QC checklist | `planner-and-qc-lead` |
 | Implement a feature / write or refactor Python code | `developer` |
+| React + TypeScript + Vite UI (canvas, maps, grids, charts) | `frontend-developer` |
+| Mechanical build gate before review (tsc, mypy, lint, emoji scan) | `tester` |
+| Judgment review of a diff: scope, duplication, contract | `reviewer` |
 | Verify math in code vs docstrings vs ALGORITHM.md | `math-reviewer` |
 | Pre-merge audit: hardcoded values, pint, tooling, layout | `auditor` |
 | Restructure code without changing behavior | `refactor-architect` |
@@ -36,8 +39,20 @@ Plans any non-trivial task: decomposes into steps, identifies risks, produces a 
 ## Tier 2 — Code: Writing & Review
 
 ### `developer`
-Implements features, refactors, documents inline (docstrings). Enforces CLAUDE.md: type hints, `Algorithm:` docstring sections (LaTeX + ASCII), `uv`/`ruff`/`mypy`/`pytest`, no hardcoded values, `pint` units, reproducible seeds.
-- **Not for**: research reports → `writing-support-team`; code-facing docs → `doc-writer`
+Implements features, refactors, documents inline (docstrings). Enforces CLAUDE.md: type hints, `Algorithm:` docstring sections (LaTeX + ASCII), `uv`/`ruff`/`mypy`/`pytest`, no hardcoded values, `pint` units, reproducible seeds. Finishes the task completely, generalises over special-casing, reuses over duplicating, and verifies in the running app.
+- **Not for**: React/TS UI → `frontend-developer`; research reports → `writing-support-team`; code-facing docs → `doc-writer`
+
+### `frontend-developer`
+React + TypeScript + Vite browser clients for scientific-modelling GUIs: React Flow canvases, Leaflet / d3-geo maps, Glide/TanStack data grids, hand-rolled SVG charts, resizable rails, plugin hosts. Honors the project's existing layout/interaction contract and design system, reuses CSS (no duplication, `:root` variables), keeps the backend↔frontend type contract exact, verifies in the running app, and never adds icons/emojis.
+- **Not for**: Python model code → `developer`; matplotlib/plotly figures → `visualizer`
+
+### `tester`
+Mechanical build gate — no judgment. Type-check (`tsc`/`mypy`), compile, lint on a **plain** `ruff check .`, emoji/icon scan, tests. Pass/fail report. Runs *before* `reviewer` so the reviewer focuses on intent.
+- **Not for**: design/scope judgment → `reviewer`
+
+### `reviewer`
+APPROVE/REJECT a diff against the one task asked for. Rejects on icons/emojis, scope creep, duplication of existing functionality, hardcoded domain data, and broken backend↔frontend contract. Read-only judgment; assumes `tester` passed first.
+- **Not for**: mechanical checks → `tester`; deep math correctness → `math-reviewer`
 
 ### `math-reviewer`
 Verifies that code matches the equations in `Algorithm:` docstring sections and `docs/ALGORITHM.md`. Checks discretization stability, sign conventions, indexing, tolerances, edge cases. **Read-only.**
@@ -105,16 +120,19 @@ A 4-persona writing team for professional documents: research reports, white pap
 
 ### Feature development
 ```
-planner-and-qc-lead  →  developer
+planner-and-qc-lead  →  developer / frontend-developer
                      →  math-reviewer      (if math changed)
+                     →  optimization-modeller (if LP/MILP changed)
                      →  data-scientist     (if data I/O changed)
                      →  visualizer         (if charts involved)
+                     →  tester             (mechanical gate)
+                     →  reviewer           (judgment gate, before commit)
                      →  auditor            (before merge)
 ```
 
 ### Bug fix
 ```
-debugger  →  developer  →  auditor
+debugger  →  developer / frontend-developer  →  tester  →  reviewer  →  auditor
 ```
 
 ### Refactor
@@ -148,6 +166,8 @@ data-collector  →  data-scientist  →  developer  (integrate into codebase)
 > Use the optimization-modeller subagent on simplePyPSA_KR/network.py.
 > Use the gis-analyst subagent on the spatial join in gisanalysis/process.py.
 > Use the visualizer subagent to fix the legend in pypsa_gui/charts.py.
+> Use the frontend-developer subagent to add a resizable properties rail in frontend/pathwise.
+> Use the tester subagent on the changed files, then the reviewer subagent on the diff.
 > Use the data-collector subagent to build a DART filing ingestion pipeline.
 > Use the doc-writer subagent to write the CLI manual for scripts/run_model.py.
 ```

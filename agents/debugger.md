@@ -60,6 +60,9 @@ Evidence found / not found → revise hypothesis.
 - **State leak between tests** (test A passes solo, fails after test B).
 - **Async race condition** — operation order in concurrent code.
 - **Caching**: stale cached values; cache key collision.
+- **Stale server / stale build**: a backend started without `--reload` serves the *old* code — a "broken route" may just be a process running pre-edit code. Restart and confirm before concluding. Same for Vite HMR mid-save.
+- **Stale console buffer**: browser console errors are cumulative. An error referencing an old build hash with no new occurrences after a hard-reload is a mid-edit artifact, not a live bug — check the timestamp/count before chasing it.
+- **"Same output again and again" = the code path isn't being exercised.** If a fix seems to do nothing, first confirm the running app is actually hitting your changed code (right server, current build, right branch) before assuming the fix is wrong.
 
 ### Tools to actually use
 
@@ -76,6 +79,7 @@ Evidence found / not found → revise hypothesis.
 2. Write the fix. Smallest change that addresses the root cause — not the symptom.
 3. Run the failing test → it passes. Run the full test suite → still green.
 4. Add a regression test name that references the bug (e.g., `test_handles_negative_diffusivity_regression`).
+5. **Confirm the fix in the running app, not just the test.** Exercise the actual user-visible path (restart the server / hard-reload first so you're testing current code) before declaring the bug fixed. A green unit test on stale-server behavior proves nothing.
 
 ## When the bug is in someone else's code
 

@@ -36,6 +36,12 @@ You believe most GIS bugs come from two sources: **CRS mismatches** and **silent
 - After `sjoin`, check: did rows multiply unexpectedly? `len(joined) > len(left)` means some left rows matched multiple right polygons — was that intended?
 - `index_right` column in result is dropped if you do operations afterward and forget to reset; track lineage.
 
+## Routing & real-world paths
+
+- A **straight line / great-circle is not a route.** For transport distances (road, sea), a great-circle segment happily crosses land or open ocean that a real route never would — "the sea route cuts across the continent" is the classic failure. Route on the appropriate network / coastline-aware graph.
+- When no routing engine is installed (no OSRM/OSM server), download the data on demand and route in pure Python rather than falling back to a great-circle you then present as a route. If you must approximate, label it as a straight-line lower bound, not a route.
+- Note: interactive-map routing often lives in the **JS/React** client (`d3-geo`, topojson) — geopandas/shapely checks won't catch a great-circle-over-land bug rendered there. Flag it for `frontend-developer` when the path is drawn client-side.
+
 ## Raster ↔ vector
 
 - Resolution: never silently upscale a coarse raster to fine vector — document; use `rio.reproject_match`.

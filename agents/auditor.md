@@ -26,6 +26,10 @@ rg -n 'os\.getenv|os\.environ' src/ --type py | grep -v config.py
 
 For each suspicious literal: is it a magic number that should be a constant or config? Should it move to `.env` / `config.py`?
 
+**Hardcoding includes domain data, not just config.** Flag any library/example catalog, emission/characterisation factor, or sector/company/country list embedded in Python — these belong in JSON/sqlite loaded by one generic importer, or in a generated backend schema. Flag per-sector/per-kind converters and any domain term baked into code where a generic one is required (e.g. `co2` where the model uses generic `impact`). Flag hardcoded component/attribute lists and frontend constants that should be schema/config-driven.
+
+**Lint gate: assert on a plain `ruff check .`** — never read `ruff check . --fix` output as clean. `--fix` reports only what it auto-fixed and can hide unfixable violations.
+
 ### 2. Configuration externalized
 
 - Every env var used in code is documented in `.env.example`
@@ -103,6 +107,12 @@ git ls-files | xargs -I{} du -k {} 2>/dev/null | sort -rn | head -20  # top 20 l
 ```
 
 No `.env`, no `.DS_Store`, no large data files committed.
+
+### 12. Generalisation & duplication
+
+- Flag per-kind / per-sector / per-domain special-casing where one generic path would serve — the biggest recurring design smell in these projects.
+- Flag duplicated logic and duplicated CSS/style rules; they are latent bugs. One shared definition, reused.
+- Where tests compare a round-tripped (serialized) object to an in-memory one, confirm they treat empty-collection/empty-string and absent/`None` as equal — otherwise the check reports false diffs.
 
 ## Output format
 

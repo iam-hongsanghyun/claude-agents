@@ -33,6 +33,9 @@ AGENTS=(
     planner-and-qc-lead
     # Tier 2: Code — writing & review
     developer
+    frontend-developer
+    tester
+    reviewer
     math-reviewer
     auditor
     refactor-architect
