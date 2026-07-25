@@ -16,7 +16,7 @@ This repo is the source of truth. Local working copy at `~/.claude/templates/` i
 | [`.env.example`](./.env.example) | Environment variable template (incl. `RANDOM_SEED`). |
 | [`.gitignore`](./.gitignore) | Python + scientific-stack ignores (`data/`, `mlruns/`, `*.parquet`, etc.). |
 | [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) | uv-based CI (Python 3.11 + 3.12). |
-| [`agents/`](./agents/) | 21 user-level subagents auto-installed to `~/.claude/agents/` (see below). |
+| [`agents/`](./agents/) | 26 user-level subagents auto-installed to `~/.claude/agents/` (see below). |
 | [`scripts/claude-scaffold.sh`](./scripts/claude-scaffold.sh) | Bootstrap a new project from these templates. |
 | [`scripts/sync-to-local.sh`](./scripts/sync-to-local.sh) | Pull updates from this repo into `~/.claude/{templates,agents}/`. |
 | [`settings.json.example`](./settings.json.example) | Claude Code SessionStart hook to auto-create `CLAUDE.md` in new git repos. |
@@ -25,7 +25,7 @@ This repo is the source of truth. Local working copy at `~/.claude/templates/` i
 
 ## Subagents (user-level — available in every Claude Code session)
 
-After running `scripts/install.sh` or `scripts/sync-to-local.sh`, all 21 agents are installed to `~/.claude/agents/` and available in every project — no per-project setup needed.
+After running `scripts/install.sh` or `scripts/sync-to-local.sh`, all 26 agents are installed to `~/.claude/agents/` and available in every project — no per-project setup needed.
 
 See [`agents/README.md`](./agents/README.md) for the full role reference and disambiguation guide.
 
@@ -55,6 +55,7 @@ For work bound by a **contract, proposal, or funding agreement**. All artefacts 
 | [`reviewer`](./agents/reviewer.md) | Judgment review of a diff against the one task asked: APPROVE/REJECT on scope creep, duplication, hardcoded domain data, broken contract, icons/emojis. Assumes `tester` ran first. |
 | [`math-reviewer`](./agents/math-reviewer.md) | Whenever math/numerics change. Cross-checks code vs `Algorithm:` docstring vs `ALGORITHM.md`. Stability, sign conventions, indexing, tolerances, edge cases. **Read-only.** |
 | [`auditor`](./agents/auditor.md) | Pre-merge: no hardcoded values, config externalized, `pint` at boundaries, doc/code alignment, tooling clean. **Read-only.** |
+| [`provenance-auditor`](./agents/provenance-auditor.md) | Pre-publication **data** audit: every figure traces to a register row or numbered assumption, manifests re-hash, raw unedited, source attribution present, licence permits republication (incl. 공공누리/KOGL), clean-checkout reproducibility. **Read-only.** |
 | [`refactor-architect`](./agents/refactor-architect.md) | Restructure code without changing behavior. Extract, deduplicate, reduce coupling, remove dead code. Tests stay green. |
 | [`debugger`](./agents/debugger.md) | Bugs — crashes, wrong outputs, flaky tests. Reproduce → isolate → fix (root cause, not symptom). |
 
@@ -66,6 +67,9 @@ For work bound by a **contract, proposal, or funding agreement**. All artefacts 
 | [`optimization-modeller`](./agents/optimization-modeller.md) | LP/MILP/NLP code: PyPSA, linopy, pyomo, cvxpy. Formulation, infeasibility debugging, solver tuning. **Not** energy market research (→ `energy-finance-team`). |
 | [`gis-analyst`](./agents/gis-analyst.md) | Geospatial code: geopandas, shapely, rasterio, xarray. CRS audits, spatial-join pitfalls, raster/vector mismatches. |
 | [`data-collector`](./agents/data-collector.md) | Build ingestion pipelines in code (OpenDART, Yahoo Finance, KOSIS, news APIs). Polite scraping, schema validation (pydantic/pandera), idempotent storage. **Not** ad-hoc research (→ research teams). |
+| [`source-reconciliation-analyst`](./agents/source-reconciliation-analyst.md) | Two sources disagree about the same quantity. Prove the join, classify and quantify the disagreement, get the decision, **record it as a reusable rule** with an id, preserve the losing value in a parallel column, gate on a tolerance. Never silently picks. |
+| [`mcp-server-engineer`](./agents/mcp-server-engineer.md) | MCP server tool surface: tool granularity, schemas with vocab-sourced enums, recoverable errors, output token budgeting with explicit truncation, stdio correctness, client registration, MCP/CLI/HTTP parity. |
+| [`app-distribution-engineer`](./agents/app-distribution-engineer.md) | Double-clickable `.command` / `.bat` / `.ps1` launchers for non-technical users: cwd and interpreter resolution, venv bootstrap, first-run `.env`, ports, Gatekeeper, actionable failure messages, per-OS parity. |
 | [`visualizer`](./agents/visualizer.md) | Charts, maps, dashboards in code: matplotlib, seaborn, plotly, folium, pydeck. Publication-ready figures. |
 | [`doc-writer`](./agents/doc-writer.md) | **Code-facing docs only**: README, CLI manuals, tutorials, troubleshooting, ARCHITECTURE.md. **Not** research reports/memos (→ `writing-support-team`). |
 
@@ -75,7 +79,8 @@ For work bound by a **contract, proposal, or funding agreement**. All artefacts 
 |---|---|
 | [`energy-finance-team`](./agents/energy-finance-team.md) | Energy markets, ESG, climate finance, energy policy research → structured report. Uses web search, Yahoo Finance, DART. |
 | [`investment-asset-team`](./agents/investment-asset-team.md) | Portfolio, equity, bond/credit, risk analysis → structured investment report. Uses Yahoo Finance, DART, web research. |
-| [`writing-support-team`](./agents/writing-support-team.md) | Research reports, white papers, policy briefs, memos, presentations. **Not** code-facing docs (→ `doc-writer`). |
+| [`kr-power-data-scout`](./agents/kr-power-data-scout.md) | Find a Korean dataset and establish **what the metric actually measures** (설비용량 vs 발전용량, 발전단 vs 송전단, SMP vs 정산단가, 잠정 vs 확정). KPX/EPSIS, KEPCO, 전기본, KOSIS, data.go.kr, OpenDART, KEEI, KMA, GIR. Returns a dossier with level, access class, and KOGL licence — never code. |
+| [`writing-support-team`](./agents/writing-support-team.md) | Research reports, white papers, policy briefs, memos, presentations, and **parallel KO/EN deliverables** with a maintained terminology glossary. **Not** code-facing docs (→ `doc-writer`). |
 
 > Tier 4 teams are structured by **function, not named personas**, and share an analytical-integrity discipline: understand before you build the deliverable; correlation not causation ("areas to explore," never "X caused Y"); dollars alongside percentages; explicit coverage/sample/unit caveats; provenance and change-logs; state AI use; gate figures `[verified]` vs `[compute]`.
 
@@ -92,6 +97,11 @@ For work bound by a **contract, proposal, or funding agreement**. All artefacts 
 | Write README / CLI docs / tutorial | `doc-writer` |
 | Implement Python code | `developer` |
 | Build a data-ingestion pipeline in code | `data-collector` |
+| Find a Korean dataset / check what a Korean metric means | `kr-power-data-scout` |
+| Two sources disagree about the same number | `source-reconciliation-analyst` |
+| Build or debug an MCP server | `mcp-server-engineer` |
+| Make it launch by double-click for a non-technical user | `app-distribution-engineer` |
+| Check every figure traces to a source before publishing | `provenance-auditor` |
 | Analyse data in code (EDA, ML) | `data-scientist` |
 | Write optimization model code | `optimization-modeller` |
 | Write a chart in code | `visualizer` |
@@ -128,6 +138,15 @@ energy-finance-team  or  investment-asset-team  →  writing-support-team
 
 # Data pipeline
 data-collector  →  data-scientist  →  developer
+
+# New Korean dataset
+kr-power-data-scout  →  data-collector  →  source-reconciliation-analyst  →  provenance-auditor
+
+# MCP surface
+mcp-server-engineer  →  tester  →  reviewer   (+ app-distribution-engineer if it ships an installer)
+
+# Before publishing a dataset or deliverable
+provenance-auditor  →  auditor
 ```
 
 ### Invoking from Claude Code
@@ -149,6 +168,11 @@ data-collector  →  data-scientist  →  developer
 > Use the energy-finance-team subagent to research Korean offshore wind policy.
 > Use the investment-asset-team subagent to analyze KEPCO's debt profile.
 > Use the writing-support-team subagent to draft a policy brief on carbon markets.
+> Use the kr-power-data-scout subagent to establish what KPX 발전기현황 actually measures.
+> Use the source-reconciliation-analyst subagent on the fleet-vs-topology capacity conflict.
+> Use the mcp-server-engineer subagent to review the landscape MCP tool surface.
+> Use the app-distribution-engineer subagent to make run.command work on a clean Mac.
+> Use the provenance-auditor subagent before we publish the open data bundle.
 > Use the data-collector subagent to build a DART filing ingestion pipeline.
 > Use the doc-writer subagent to write the CLI manual for scripts/run_model.py.
 ```

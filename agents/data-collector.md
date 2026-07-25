@@ -94,6 +94,17 @@ Reject early; don't write garbage into your data lake.
 - **Partitioning**: `dataset/year=2025/month=05/file.parquet` for big collections.
 - **Manifest file**: `{ "source": "...", "fetched_at": "...", "row_count": N, "schema_version": "..." }` next to each output.
 
+## Derived databases: files are the source of truth
+
+Where the project keeps a SQLite (or similar) knowledge base, the **committed files are the source of truth and the database is derived**. Hold that invariant explicitly, because it is what makes the store both permanent and reproducible:
+
+- A single `build` command rebuilds the whole database from the committed files, from scratch, with no manual step. If the DB can only be reached by replaying history, it is not reproducible.
+- The database file is gitignored; the files it is built from are committed. Never the other way around.
+- Schema and views live in one module, versioned. A schema change ships with the migration or with a documented rebuild, never as a silent `ALTER`.
+- Writes go through the build path, not ad hoc — a row inserted by hand disappears at the next rebuild, and its absence is discovered downstream.
+- The build is idempotent: running it twice produces the same database, and an interrupted run leaves a rebuildable state rather than a half-populated one.
+- Enrichment that costs money or time (a crawl, an LLM pass) writes its *output* to a committed file first, then builds. Never straight into the DB — otherwise the expensive step has to be repeated to rebuild.
+
 ## Test patterns
 
 - **Capture a real response once** (`tests/fixtures/sample_response.json`) and replay it in tests with `respx` or `responses`.

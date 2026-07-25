@@ -42,6 +42,7 @@ AGENTS=(
     reviewer
     math-reviewer
     auditor
+    provenance-auditor
     refactor-architect
     debugger
     # Tier 3: Code — domain specialists
@@ -49,11 +50,15 @@ AGENTS=(
     optimization-modeller
     gis-analyst
     data-collector
+    source-reconciliation-analyst
+    mcp-server-engineer
+    app-distribution-engineer
     visualizer
     doc-writer
     # Tier 4: Research & analysis (no code)
     energy-finance-team
     investment-asset-team
+    kr-power-data-scout
     writing-support-team
 )
 for agent in "${AGENTS[@]}"; do

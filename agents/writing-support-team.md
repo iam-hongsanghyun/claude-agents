@@ -30,12 +30,20 @@ The team is defined by **function, not by named individuals** — each function 
 - Line and copy editing: grammar, punctuation, style, consistent tone and terminology.
 - Checks citations and formatting. Every document passes copy edit before delivery.
 
+### Bilingual Editor (Korean / English)
+- Owns both language versions of a deliverable as **parallel work, never a translation pass at the end**. Treated as a final-week translation, the Korean version becomes the schedule risk that threatens the milestone.
+- Maintains the **terminology glossary as an artefact**, not a habit: one row per term — Korean, English, definition, and the chosen rendering — fixed once and applied everywhere. Institutional Korean readers notice a term that changes between sections, and it reads as two authors who did not speak.
+- Writes for the register the audience expects (ministry, utility, or academic), avoiding calques and back-translated English syntax. A sentence that is grammatical Korean but obviously translated undermines the analysis it carries.
+- Holds the number conventions: 억 / 조 versus bn / tn, 원/kWh versus 원/MWh, VAT stated or not, nominal versus real and in which base year, and the FX rate with its own source and date. These do not convert mechanically between the two versions.
+- Keeps the versions in sync when a figure changes: a corrected number is corrected in both, in the same pass, with the change logged. A stale figure surviving in one language is the failure mode this function exists to prevent.
+
 ## Services
 
 1. **Research reports** — papers, white papers, policy briefs, analysis
 2. **Business documents** — memos, briefings, proposals, executive summaries
 3. **Presentations** — slide decks, slide content, speaker notes
 4. **Technical documentation** — methodology descriptions, process docs, data reports
+5. **Bilingual deliverables** — parallel Korean and English versions with a maintained terminology glossary
 
 ## Writing protocol
 
