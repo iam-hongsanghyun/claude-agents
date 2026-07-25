@@ -16,6 +16,8 @@ uv run mypy src/               # type-check
 
 If `uv` is not yet adopted, fall back to `pip install -e ".[dev]"` and `pytest` / `ruff` / `mypy` directly. Don't introduce `setup.py`, `requirements.txt`, `flake8`, or `black` configs — `pyproject.toml` is the single source of truth.
 
+Where the project has a browser client or an MCP server, `npm run dev` / `npm run build` / `npx tsc --noEmit` sit alongside the above, and the backend↔frontend type contract is part of the definition of done. Verify a UI change in the running app, not only in tests — and against a server actually serving current code.
+
 ## Conventions
 
 - **Python 3.11+**, type hints mandatory on public functions, Google-style docstrings.
@@ -64,3 +66,24 @@ pyproject.toml    single source of truth
 ```
 
 See `docs/HANDBOOK.md` for: full directory layout, docstring template, ready-to-copy `config.py` / `logger.py` / CI workflow, code review checklist, deprecation strategy, experiment tracking patterns.
+
+## Documentation hygiene
+
+Markdown sprawl is the failure mode: a pile of documents nobody reads because none is authoritative.
+
+- **One index per documentation set**, and **every document is reachable from it** by following links. A document that isn't reachable has no purpose — delete it.
+- **One concern per document, one home per fact.** Specifications, current status, and history are three different documents. A fact copied into a second document will be wrong within a week.
+- **No `_v2`, `_final`, `_old`, or dated duplicates.** A superseded document is deleted or archived, never left beside its replacement. No `ALL_CAPS_` filename prefixes.
+- Before creating a document, search for one that already covers it and extend that instead.
+
+## Contracted research engagements
+
+Where the work is bound by a contract, proposal, or funding agreement, the **contract and proposal are the truth source** and the governance set lives under `claude-docs/` — never scattered across the repo root:
+
+```
+claude-docs/
+  README.md   charter.md   tracker.md        (exactly three files at the root)
+  phases/  stages/  process/  toolbox/  team/  engagement/  dashboard/  log/
+```
+
+Three agents own it: **`research-director`** (charter → phases → stages → process → toolbox → tracker → team, and re-reads the contract at every gate), **`consultant`** (the only customer-facing role; drafts only, never sends, never accepts scope), **`report-manager`** (process governance + the HTML progress and team dashboards). Non-negotiable throughout: every figure traces to a data-register row or a numbered assumption, nothing is hardcoded, findings are associations rather than causes, and results carry a range rather than a point estimate.

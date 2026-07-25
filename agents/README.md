@@ -1,6 +1,6 @@
 # Agents — Role Reference
 
-All 18 agents are installed to `~/.claude/agents/` and available globally in every Claude Code session.
+All 21 agents are installed to `~/.claude/agents/` and available globally in every Claude Code session.
 
 ---
 
@@ -8,6 +8,9 @@ All 18 agents are installed to `~/.claude/agents/` and available globally in eve
 
 | Task | Agent |
 |---|---|
+| Set up / govern a contracted or funded research engagement | `research-director` |
+| Talk to the customer; turn output into plain language | `consultant` |
+| Progress dashboards; check the process is being followed | `report-manager` |
 | Plan a non-trivial task; produce a QC checklist | `planner-and-qc-lead` |
 | Implement a feature / write or refactor Python code | `developer` |
 | React + TypeScript + Vite UI (canvas, maps, grids, charts) | `frontend-developer` |
@@ -26,6 +29,37 @@ All 18 agents are installed to `~/.claude/agents/` and available globally in eve
 | Energy market / ESG / climate / policy research → report | `energy-finance-team` |
 | Portfolio, equity, bond, risk analysis → report | `investment-asset-team` |
 | Research report, memo, white paper, presentation | `writing-support-team` |
+
+---
+
+## Tier 0 — Engagement Governance
+
+For work that is bound by a **contract, proposal, or funding agreement** rather than by a backlog. Tier 0 answers *what is the research, who is on it, is it on track, and what does the client see* — Tiers 1–4 answer *how is the work done*.
+
+The three roles are deliberately separated, because in practice one person doing all three quietly drops the least urgent: designing the process, checking the process is followed, and facing the client are different jobs with different failure modes.
+
+All Tier 0 artefacts live under **`claude-docs/`** in the project — never scattered across the repo root. See `research-director` for the directory contract and the hygiene rules that keep it from becoming a markdown dump.
+
+### `research-director`
+Owns the research design and its governance. Reads the **contract/proposal as the single truth source**, then derives:
+- **`charter.md`** — purpose, deliverables (with acceptance conditions), obligations, exclusions, each with a traceable id;
+- **phases** — purpose, testable objectives, deliverables, entry/exit criteria;
+- **stages** — the actual research activities, linked **many-to-many** to phases;
+- **process** — one general process document plus one per stage: how to do it, when to stop, when to repeat, how to handle data (never hardcode), how and where to reference, and the methodology that governs;
+- **toolbox** — data catalogue / register / assumptions, method files, reference sets;
+- **`tracker.md`** — the single live tracking document that judges whether current activity is actually meeting each phase's objectives;
+- **`team/roster.md`** — which agents the project needs, and new agent definitions where a stage genuinely has no competent owner.
+
+Runs five named passes: Inception → Design → Conformance (re-read the contract; catch a method that answers an easier question) → Tracking → Team. Does not compute figures, does not write code, does not talk to the client.
+- **Not for**: planning a single coding task → `planner-and-qc-lead`; client communication → `consultant`; dashboards → `report-manager`; the internal lead *function* inside `energy-finance-team` is unrelated to this agent
+
+### `consultant`
+The only customer-facing role. Runs the engagement — inception, progress meetings, data and decision requests, review rounds, change control, early warning of delay — and translates technical output into language the client can read, present, and defend without you in the room. Two hard boundaries: **never sends anything** (drafts only; the user sends), and **never accepts scope** (any request outside `charter.md` becomes a change request routed to `research-director`). Keeps an append-only engagement register of every commitment, request and decision.
+- **Not for**: designing phases/stages → `research-director`; full formal reports and decks → `writing-support-team`; domain analysis → the Tier 4 research teams
+
+### `report-manager`
+Governs whether the designed process is actually being run, and makes the state visible. Runs an eight-check governance pass (tracker freshness, figure gating, unserved objectives, deliverable traceability, process conformance, directory hygiene, gate integrity, claimed-vs-actual) — then generates `claude-docs/dashboard/`: a **progress dashboard** and a **team dashboard** as self-contained HTML that opens by double-click, offline, with no CDN and no build step. Reads the documents, never edits them: if the tracker is wrong it reports it rather than fixing it. Also writes the internal progress note that `consultant` translates.
+- **Not for**: designing the process → `research-director`; client-facing writing → `consultant`; figures inside a deliverable → `visualizer`
 
 ---
 
@@ -102,21 +136,42 @@ Produces charts, maps, and dashboards **in code**: matplotlib, seaborn, plotly, 
 
 ## Tier 4 — Research & Analysis (no code)
 
+Tier 4 teams are structured by **function, not named personas**, and enforce a shared analytical-integrity discipline: understand before you build the deliverable; correlation not causation ("areas to explore," never "X caused Y"); absolute magnitudes (dollars) alongside percentages; explicit coverage/sample/unit caveats; provenance and change-logs; state AI use; and gate every figure `[verified]` vs `[compute]`.
+
 ### `energy-finance-team`
-A 4-persona research team (PLANiT Institute) delivering structured reports on energy markets, ESG, climate finance, and energy policy. Uses web search, Yahoo Finance, and DART.
+Functional research team (PLANiT Institute) — Research Director plus Energy Markets, Financial Markets, and Policy & Regulatory functions — delivering structured reports on energy markets, ESG, climate finance, and energy policy. Uses web search, Yahoo Finance, and DART.
 - **Not for**: optimization model code → `optimization-modeller`; data pipelines → `data-collector`; investment portfolio analysis → `investment-asset-team`
 
 ### `investment-asset-team`
-A 5-persona investment analysis team covering portfolio management, equity valuation, bond/credit analysis, and risk metrics. Outputs structured investment reports using Yahoo Finance, DART, and web research.
+Functional investment-analysis team — Investment Lead plus Portfolio, Equity, Fixed-Income, and Risk functions — covering allocation, valuation, credit, and risk. Outputs structured, non-directive investment reports using Yahoo Finance, DART, and web research.
 - **Not for**: energy/policy research → `energy-finance-team`; model code or data pipelines → `developer` / `data-collector`
 
 ### `writing-support-team`
-A 4-persona writing team for professional documents: research reports, white papers, policy briefs, business memos, executive summaries, presentations, and technical methodology descriptions for non-code audiences.
+Functional writing team — Lead Editor plus Research Writer, Technical Writer, and Copy Editor — for research reports, white papers, policy briefs, business memos, executive summaries, presentations, and methodology descriptions for non-code audiences.
 - **Not for**: code-facing docs (README, CLI, tutorials) → `doc-writer`; domain energy/investment analysis → those teams
 
 ---
 
 ## Recommended workflows
+
+### Contracted / funded research engagement
+```
+research-director  (Inception: contract+proposal -> claude-docs/charter.md)
+                   -> confirm charter with the user
+research-director  (Design: phases, stages, process, toolbox)
+research-director  (Team: roster; write new agents only for real gaps)
+consultant         (inception pack, data + decision requests)
+
+  per stage:  stage owner agents  ->  review chain  ->  research-director (Tracking)
+                                                     ->  report-manager  (governance + dashboards)
+
+at every gate:     research-director (Conformance: re-read the contract)
+                   report-manager (governance pass)  ->  consultant (client-facing translation)
+```
+Tracking is a pass, not a daemon. It is mandatory at every stage entry, exit, backward move and phase gate; for a standing cadence, schedule it:
+```
+/loop 30m Use the research-director subagent to run a tracking pass, then the report-manager subagent to rebuild the dashboards
+```
 
 ### Feature development
 ```
@@ -156,6 +211,10 @@ data-collector  →  data-scientist  →  developer  (integrate into codebase)
 ## Invoking from Claude Code
 
 ```
+> Use the research-director subagent to read the contract and proposal and build the charter.
+> Use the research-director subagent to run a tracking pass.
+> Use the report-manager subagent to rebuild the progress and team dashboards.
+> Use the consultant subagent to draft the inception agenda and the data request list.
 > Use the planner-and-qc-lead subagent to plan adding radiative forcing.
 > Use the developer subagent to implement the energy balance model in src/ebm/core/forcing.py.
 > Use the math-reviewer subagent on src/ebm/core/forcing.py.

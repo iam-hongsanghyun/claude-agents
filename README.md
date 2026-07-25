@@ -16,7 +16,7 @@ This repo is the source of truth. Local working copy at `~/.claude/templates/` i
 | [`.env.example`](./.env.example) | Environment variable template (incl. `RANDOM_SEED`). |
 | [`.gitignore`](./.gitignore) | Python + scientific-stack ignores (`data/`, `mlruns/`, `*.parquet`, etc.). |
 | [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) | uv-based CI (Python 3.11 + 3.12). |
-| [`agents/`](./agents/) | 15 user-level subagents auto-installed to `~/.claude/agents/` (see below). |
+| [`agents/`](./agents/) | 21 user-level subagents auto-installed to `~/.claude/agents/` (see below). |
 | [`scripts/claude-scaffold.sh`](./scripts/claude-scaffold.sh) | Bootstrap a new project from these templates. |
 | [`scripts/sync-to-local.sh`](./scripts/sync-to-local.sh) | Pull updates from this repo into `~/.claude/{templates,agents}/`. |
 | [`settings.json.example`](./settings.json.example) | Claude Code SessionStart hook to auto-create `CLAUDE.md` in new git repos. |
@@ -25,9 +25,19 @@ This repo is the source of truth. Local working copy at `~/.claude/templates/` i
 
 ## Subagents (user-level — available in every Claude Code session)
 
-After running `scripts/install.sh` or `scripts/sync-to-local.sh`, all 15 agents are installed to `~/.claude/agents/` and available in every project — no per-project setup needed.
+After running `scripts/install.sh` or `scripts/sync-to-local.sh`, all 21 agents are installed to `~/.claude/agents/` and available in every project — no per-project setup needed.
 
 See [`agents/README.md`](./agents/README.md) for the full role reference and disambiguation guide.
+
+### Tier 0 — Engagement governance
+
+For work bound by a **contract, proposal, or funding agreement**. All artefacts live under `claude-docs/` in the project.
+
+| Agent | When to use |
+|---|---|
+| [`research-director`](./agents/research-director.md) | Own the research design and its governance. Contract/proposal is the truth source → `charter.md` → phases (purpose, objectives, deliverables) → stages (the actual activities, many-to-many to phases) → process (general + one per stage: how, when to stop, when to repeat, data handling, referencing, methodology) → toolbox → one live `tracker.md` → team roster, writing new agents only for real capability gaps. Five passes: Inception, Design, Conformance, Tracking, Team. |
+| [`consultant`](./agents/consultant.md) | The only customer-facing role. Engagement (inception, progress meetings, data requests, review rounds, change control, delay notice) and plain-language translation the client can present without you. Never sends anything; never accepts scope. |
+| [`report-manager`](./agents/report-manager.md) | Governance pass (tracker freshness, figure gating, unserved objectives, traceability, process conformance, directory hygiene, gate integrity, claimed-vs-actual) → self-contained HTML progress and team dashboards under `claude-docs/dashboard/`. Reads the documents, never edits them. |
 
 ### Tier 1 — Workflow orchestration
 
@@ -39,7 +49,10 @@ See [`agents/README.md`](./agents/README.md) for the full role reference and dis
 
 | Agent | When to use |
 |---|---|
-| [`developer`](./agents/developer.md) | Implement features, refactor, write inline docstrings. Enforces CLAUDE.md: type hints, `Algorithm:` (LaTeX + ASCII), `uv`/`ruff`/`mypy`/`pytest`, `pint`, reproducible seeds. |
+| [`developer`](./agents/developer.md) | Implement features, refactor, write inline docstrings. Enforces CLAUDE.md: type hints, `Algorithm:` (LaTeX + ASCII), `uv`/`ruff`/`mypy`/`pytest`, `pint`, reproducible seeds. **Not** React/TS UI (→ `frontend-developer`). |
+| [`frontend-developer`](./agents/frontend-developer.md) | React + TypeScript + Vite browser clients: React Flow canvases, Leaflet / d3-geo maps, data grids, SVG charts, resizable rails. Honors existing layout/design contract, reuses CSS, keeps the backend↔frontend type contract exact, no icons/emojis. |
+| [`tester`](./agents/tester.md) | Mechanical build gate after any change, before review — type-check (`tsc`/`mypy`), compile, lint on a plain `ruff check .`, emoji/icon scan, tests. Pass/fail only, no judgment. |
+| [`reviewer`](./agents/reviewer.md) | Judgment review of a diff against the one task asked: APPROVE/REJECT on scope creep, duplication, hardcoded domain data, broken contract, icons/emojis. Assumes `tester` ran first. |
 | [`math-reviewer`](./agents/math-reviewer.md) | Whenever math/numerics change. Cross-checks code vs `Algorithm:` docstring vs `ALGORITHM.md`. Stability, sign conventions, indexing, tolerances, edge cases. **Read-only.** |
 | [`auditor`](./agents/auditor.md) | Pre-merge: no hardcoded values, config externalized, `pint` at boundaries, doc/code alignment, tooling clean. **Read-only.** |
 | [`refactor-architect`](./agents/refactor-architect.md) | Restructure code without changing behavior. Extract, deduplicate, reduce coupling, remove dead code. Tests stay green. |
@@ -64,10 +77,15 @@ See [`agents/README.md`](./agents/README.md) for the full role reference and dis
 | [`investment-asset-team`](./agents/investment-asset-team.md) | Portfolio, equity, bond/credit, risk analysis → structured investment report. Uses Yahoo Finance, DART, web research. |
 | [`writing-support-team`](./agents/writing-support-team.md) | Research reports, white papers, policy briefs, memos, presentations. **Not** code-facing docs (→ `doc-writer`). |
 
+> Tier 4 teams are structured by **function, not named personas**, and share an analytical-integrity discipline: understand before you build the deliverable; correlation not causation ("areas to explore," never "X caused Y"); dollars alongside percentages; explicit coverage/sample/unit caveats; provenance and change-logs; state AI use; gate figures `[verified]` vs `[compute]`.
+
 ### Quick disambiguation
 
 | Task | Agent |
 |---|---|
+| Set up or govern a contracted research engagement | `research-director` |
+| Draft anything the customer will read | `consultant` |
+| Build the progress / team dashboard | `report-manager` |
 | Research / find information about energy, ESG, climate | `energy-finance-team` |
 | Research / find information about stocks, portfolio, bonds | `investment-asset-team` |
 | Write a report, memo, or presentation | `writing-support-team` |
@@ -81,15 +99,26 @@ See [`agents/README.md`](./agents/README.md) for the full role reference and dis
 ### Recommended flows
 
 ```
+# Contracted / funded research engagement
+research-director (Inception → charter, confirm with user)
+                  →  research-director (Design: phases, stages, process, toolbox)
+                  →  research-director (Team: roster, new agents for real gaps)
+                  →  consultant        (inception pack, data + decision requests)
+per stage:  stage owners  →  review chain  →  research-director (Tracking)
+                                           →  report-manager   (governance + dashboards)
+at each gate: research-director (Conformance)  →  report-manager  →  consultant
+
 # Feature development
-planner-and-qc-lead  →  developer
+planner-and-qc-lead  →  developer / frontend-developer
                      →  math-reviewer     (if math changed)
                      →  data-scientist    (if data I/O changed)
                      →  visualizer        (if charts involved)
+                     →  tester            (mechanical gate)
+                     →  reviewer          (judgment gate, before commit)
                      →  auditor           (before merge)
 
 # Bug fix
-debugger  →  developer  →  auditor
+debugger  →  developer / frontend-developer  →  tester  →  reviewer  →  auditor
 
 # Refactor
 refactor-architect  →  auditor
@@ -104,12 +133,18 @@ data-collector  →  data-scientist  →  developer
 ### Invoking from Claude Code
 
 ```
+> Use the research-director subagent to read the contract and proposal and build the charter.
+> Use the research-director subagent to run a tracking pass.
+> Use the report-manager subagent to rebuild the progress and team dashboards.
+> Use the consultant subagent to draft the inception agenda and the data request list.
 > Use the planner-and-qc-lead subagent to plan adding radiative forcing.
 > Use the developer subagent to implement it in src/ebm/core/forcing.py.
 > Use the math-reviewer subagent on src/ebm/core/forcing.py.
 > Use the optimization-modeller subagent on simplePyPSA_KR/network.py.
 > Use the gis-analyst subagent on the spatial join in gisanalysis/process.py.
 > Use the visualizer subagent to fix the legend in pypsa_gui/charts.py.
+> Use the frontend-developer subagent to add a resizable properties rail in frontend/pathwise.
+> Use the tester subagent on the changed files, then the reviewer subagent on the diff.
 > Use the auditor subagent on this branch before I merge.
 > Use the energy-finance-team subagent to research Korean offshore wind policy.
 > Use the investment-asset-team subagent to analyze KEPCO's debt profile.

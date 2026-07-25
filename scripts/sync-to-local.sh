@@ -29,6 +29,10 @@ chmod +x "$SCRIPTS_DEST/claude-scaffold.sh"
 # --- subagents (user-level: available in every Claude Code session) ---
 # Only copies our named agents — won't touch other agents you have at ~/.claude/agents/.
 AGENTS=(
+    # Tier 0: Engagement governance (contracted / funded research projects)
+    consultant
+    research-director
+    report-manager
     # Tier 1: Workflow orchestration
     planner-and-qc-lead
     # Tier 2: Code — writing & review
