@@ -4,7 +4,7 @@
 
 > For the **interactive version** — a clickable map with each agent's full role and routing boundaries — open [`ontology.html`](ontology.html) (self-contained, offline, opens by double-click; regenerate with `uv run --no-project --with pyyaml python scripts/render_ontology_html.py`).
 
-32 user-level agents (installed to `~/.claude/agents/`) and 12 project-scoped agents (mirrored under [`project/`](project/README.md), not installed globally). Nodes are agents; edges are typed relationships. The full role reference is [`README.md`](README.md); this document is the machine-readable relationship graph.
+34 user-level agents (installed to `~/.claude/agents/`) and 12 project-scoped agents (mirrored under [`project/`](project/README.md), not installed globally). Nodes are agents; edges are typed relationships. The full role reference is [`README.md`](README.md); this document is the machine-readable relationship graph.
 
 ## Tiers
 
@@ -38,6 +38,8 @@ flowchart LR
     research_director["research-director"]
     consultant["consultant"]
     report_manager["report-manager"]
+    log_reporter["log-reporter"]
+    result_reporter["result-reporter"]
   end
   subgraph T1["Tier 1 &middot; Workflow orchestration"]
     planner_and_qc_lead["planner-and-qc-lead"]
@@ -76,8 +78,13 @@ flowchart LR
     kr_power_data_scout["kr-power-data-scout"]
     writing_support_team["writing-support-team"]
   end
+  research_director --> log_reporter
+  research_director --> result_reporter
+  result_reporter -.- visualizer
+  log_reporter --> visualizer
+  result_reporter --> provenance_auditor
+  result_reporter --> consultant
   research_director --> visualizer
-  research_director --> provenance_auditor
   planner_and_qc_lead --> developer
   planner_and_qc_lead --> frontend_developer
   planner_and_qc_lead --> web_app_engineer
@@ -165,8 +172,10 @@ flowchart LR
 | Agent | Tier | Model | Access | Role |
 |---|---|---|---|---|
 | [`consultant`](consultant.md) | 0 | opus | read-write | The only customer-facing role — engagement + plain-language translation; drafts only, never sends, never accepts scope |
+| [`log-reporter`](log-reporter.md) | 0 | opus | read-write | The log report per unit — what was done and what failed: commands, environment, fingerprints, dead ends, deviations, reproduction |
 | [`report-manager`](report-manager.md) | 0 | opus | read-write | Process-conformance governance + generated HTML progress & team dashboards; reads the docs, never edits them |
 | [`research-director`](research-director.md) | 0 | opus | read-write | Owns research design & governance from the contract — charter, phases, stages, process, toolbox, tracker, team, and the reports/ record set |
+| [`result-reporter`](result-reporter.md) | 0 | opus | read-write | The result report per unit — the analysis as a journal article, plus a conference-presentation deck; data handling, statistics, figures |
 | [`planner-and-qc-lead`](planner-and-qc-lead.md) | 1 | opus | read-only | Plans a non-trivial task, decomposes it into reviewable steps, produces a QC checklist, routes to agents |
 | [`auditor`](auditor.md) | 2 | opus | read-only | Pre-merge code audit — no hardcoded values, config externalised, pint, tooling, layout |
 | [`debugger`](debugger.md) | 2 | opus | read-write | Reproduce → isolate root cause → minimal fix; failing test before the fix |
@@ -218,8 +227,12 @@ flowchart LR
 
 ### `hands_off_to`
 
-- `research-director` &rarr; `visualizer` — Pass 7 — builds reports/build.py, every report .html and the index.html dashboard
-- `research-director` &rarr; `provenance-auditor` — Pass 7 — licence and trace check before the report set travels
+- `research-director` &rarr; `log-reporter` — the operational record per unit — what was done, what failed
+- `research-director` &rarr; `result-reporter` — the analysis article and its presentation deck per unit
+- `log-reporter` &rarr; `visualizer` — the navigable record page
+- `result-reporter` &rarr; `provenance-auditor` — licence and trace clearance before the result set travels
+- `result-reporter` &rarr; `consultant` — audience framing when a deck goes to a client
+- `research-director` &rarr; `visualizer` — builds reports/_build/
 - `planner-and-qc-lead` &rarr; `developer`
 - `planner-and-qc-lead` &rarr; `frontend-developer`
 - `planner-and-qc-lead` &rarr; `web-app-engineer`
@@ -250,6 +263,10 @@ flowchart LR
 - `research-director` &rarr; `planner-and-qc-lead` — a single coding task
 - `research-director` &rarr; `consultant` — client communication
 - `research-director` &rarr; `report-manager` — the progress and team dashboards
+- `research-director` &rarr; `log-reporter` — writing the log report itself
+- `research-director` &rarr; `result-reporter` — writing the analysis report itself
+- `log-reporter` &rarr; `result-reporter` — the analysis
+- `result-reporter` &rarr; `log-reporter` — commands
 - `consultant` &rarr; `research-director` — any out-of-scope request becomes a change request
 - `consultant` &rarr; `writing-support-team` — full formal deliverables
 - `report-manager` &rarr; `research-director` — designing the process
@@ -289,6 +306,7 @@ flowchart LR
 
 ### `pairs_with`
 
+- `result-reporter` &rarr; `visualizer` — every figure
 - `renewable-resource-scientist` &rarr; `gis-analyst` — CRS / zone→node mapping
 - `renewable-resource-scientist` &rarr; `math-reviewer` — extrapolation & mapping math
 - `climate-risk-modeller` &rarr; `gis-analyst` — hazard/exposure CRS & resolution alignment
@@ -346,16 +364,17 @@ Named sequences the edges above compose into.
 1. report-manager (dashboards) → consultant (if a figure already went to the client)
 1. research-director writes .claude/skills/<project>-refresh/SKILL.md so the next refresh is one invocation
 
-### reporting-the-work
+### interim-reporting
 
-1. research-director (Reporting 7.0 → scaffold reports/: ph-<nn>/, st-<nn>/ with pr-<nn>/ nested inside; one triplet per unit)
-1. research-director writes Identity, Background, Method reference, Traceability, reproduction contract
-1. the unit's owning agent writes Results, Verification, Limitations and fills the .sqlite/.xlsx (numbers, figures, provenance)
-1. review chain gates each number [compute] -> [verified]; research-director never marks one itself
-1. visualizer builds reports/build.py, every unit .html and the index.html dashboard — self-contained, offline, deterministic
-1. provenance-auditor checks licence and trace before the set travels (no unredistributable raw data embedded)
-1. research-director gates completeness: three files per unit, no empty section, every stated number present in `numbers`
-1. after any Pass 6 refresh, the refreshed units' reports revert to [compute] and are rebuilt
+1. step-by-step, not once at the end: fires at every process-step completion, stage exit and phase gate
+1. research-director decides which units need a log report, a result report, or `result: n/a — no analytical output`
+1. log-reporter writes reports/log/<unit>/ — what was done, what failed, commands, fingerprints, deviations, reproduction
+1. result-reporter writes reports/result/<unit>/ — the journal article: why, data handling, statistics, methods, results
+1. visualizer builds every figure, both .html families, the conference decks and the two indexes — offline, deterministic
+1. review chain gates each number [compute] -> [verified]; neither reporter marks its own
+1. provenance-auditor clears licence and trace before the result set travels; consultant frames any deck going to a client
+1. research-director gates completeness and names the incomplete units — it writes neither family
+1. after any Pass 6 refresh, the refreshed units' figures revert to [compute] and their decks are rebuilt
 
 ### feature-development
 

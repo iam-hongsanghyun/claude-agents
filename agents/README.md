@@ -1,6 +1,6 @@
 # Agents — Role Reference
 
-All 32 agents are installed to `~/.claude/agents/` and available globally in every Claude Code session.
+All 34 agents are installed to `~/.claude/agents/` and available globally in every Claude Code session.
 
 - Relationships between agents (tiers, hand-offs, gates, routing boundaries) live in the machine-readable [`ontology.yaml`](./ontology.yaml), rendered to [`ONTOLOGY.md`](./ONTOLOGY.md) and to an interactive map, [`ontology.html`](./ontology.html) — self-contained and offline, with every agent's full role and routing boundaries. **Double-click [`../ontology.command`](../ontology.command)** to regenerate both and open the map.
 - Project-authored agents (created inside a single engagement by `research-director`, **not** installed globally) are registered in [`project/README.md`](./project/README.md).
@@ -14,6 +14,8 @@ All 32 agents are installed to `~/.claude/agents/` and available globally in eve
 | Set up / govern a contracted or funded research engagement | `research-director` |
 | Talk to the customer; turn output into plain language | `consultant` |
 | Progress dashboards; check the process is being followed | `report-manager` |
+| Record what was done and what failed, for a step/stage/phase | `log-reporter` |
+| Write the analysis up: article + conference deck + figures | `result-reporter` |
 | Plan a non-trivial task; produce a QC checklist | `planner-and-qc-lead` |
 | Implement a feature / write or refactor Python code | `developer` |
 | React + TypeScript + Vite UI (canvas, maps, grids, charts) | `frontend-developer` |
@@ -50,7 +52,7 @@ All 32 agents are installed to `~/.claude/agents/` and available globally in eve
 
 For work that is bound by a **contract, proposal, or funding agreement** rather than by a backlog. Tier 0 answers *what is the research, who is on it, is it on track, and what does the client see* — Tiers 1–4 answer *how is the work done*.
 
-The three roles are deliberately separated, because in practice one person doing all three quietly drops the least urgent: designing the process, checking the process is followed, and facing the client are different jobs with different failure modes.
+The roles are deliberately separated, because in practice one person doing all of them quietly drops the least urgent: designing the process, checking it is followed, recording what happened, writing up what was found, and facing the client are different jobs with different failure modes.
 
 All Tier 0 artefacts live under **`claude-docs/`** in the project — never scattered across the repo root. See `research-director` for the directory contract and the hygiene rules that keep it from becoming a markdown dump.
 
@@ -63,9 +65,9 @@ Owns the research design and its governance. Reads the **contract/proposal as th
 - **toolbox** — data catalogue / register / assumptions, method files, reference sets;
 - **`tracker.md`** — the single live tracking document that judges whether current activity is actually meeting each phase's objectives;
 - **`team/roster.md`** — which agents the project needs, and new agent definitions where a stage genuinely has no competent owner;
-- **`reports/`** — the record of what was actually done, one report unit per process step, stage and phase.
+- **`reports/`** — the two report families, defined and gated here but written by `log-reporter` and `result-reporter`.
 
-Runs seven named passes: Inception → Design → Conformance (re-read the contract; catch a method that answers an easier question) → Tracking → Team → **Refresh** → **Reporting**. Does not compute figures, does not write code, does not talk to the client.
+Runs six named passes: Inception → Design → Conformance (re-read the contract; catch a method that answers an easier question) → Tracking → Team → **Refresh**. Does not compute figures, does not write code, does not talk to the client. **Interim reporting is not a pass** — it runs step by step throughout, and is delegated (below).
 
 **Refresh** is the re-run pass, for when the process has already run once and the data or the logic then changes. It treats the engagement as a dependency graph: every stage declares what it *consumes* (register rows, assumption ids, method files, config, code paths, upstream stage outputs) and *produces*, each input is fingerprinted, and a stage is re-run only when a fingerprint actually moved. The rest follows:
 - **Chain reaction** — the transitive downstream closure of every changed stage is re-run in topological order, because a moved fuel price moves the workbook, the runs, the interpretation and the figures behind them.
@@ -75,27 +77,42 @@ Runs seven named passes: Inception → Design → Conformance (re-read the contr
 - **Gates re-arm** — anything re-run reverts `[verified]` → `[compute]`; a skipped stage keeps its verification, which is exactly what the fingerprint bought; objectives evidenced by a re-run stage are re-judged.
 - Writes `.claude/skills/<project>-refresh/SKILL.md` — the project's own DAG, fingerprint commands, per-stage run commands, gates and stop condition — so the next refresh is a single invocation rather than a re-derivation.
 
-**Reporting** turns the work into a record someone outside the project can reproduce. The unit is the **process step, the stage and the phase** — a *process* being a numbered step in a stage's runbook, so 3 phases with 3 stages of 4 steps produces **3 + 3 + 12 = 18** report units. One directory per unit, and the tree is the hierarchy:
+**Interim reporting** is a standing responsibility, not a pass, and it runs **step by step** — a report lands at every process-step completion, stage exit and phase gate, while the work is fresh. A set assembled at the end is written from memory, and memory is where the failures and the drop rates go missing.
+
+`research-director` **defines and gates** the set but writes neither family:
+
+| | **log report** — [`log-reporter`](#log-reporter) | **result report** — [`result-reporter`](#result-reporter) |
+|---|---|---|
+| Answers | What did we do, and what failed? | What did we find, and how solid is it? |
+| Reader | The team, an auditor, future-you | The client, a reviewer, an audience |
+| `.md` | The work record — commands, errors, dead ends | **A journal article** — why the analysis was run, methods, results |
+| `.html` | A navigable record | **A conference presentation** |
+| Figures | Only for a diagnostic | **Central** — charts carry the findings |
+| Travels to the client | No | Yes |
+
+Every unit gets a log report; a unit gets a result report **when it produced an analytical result** — a pure acquisition step has no finding, so it records `result: n/a — no analytical output` rather than shipping a hollow document. The layout splits the families at the top, so shipping to a client is a directory decision rather than a per-file filter:
 
 ```
 claude-docs/reports/
-  index.html                dashboard over the whole set
-  build.py                  visualizer's generator
-  ph-01/    ph-01.md · ph-01.xlsx · ph-01.html
-  st-03/    st-03.md · st-03.xlsx · st-03.html      <- the stage report
-    pr-01/  pr-01.md · pr-01.xlsx · pr-01.html      <- step 1 of stage 03
-    pr-02/  pr-02.md · pr-02.xlsx · pr-02.html
+  index.html                master dashboard over both families
+  _build/                   the generator — visualizer's
+  log/     ph-01/ · st-03/ · st-03/pr-01/      each: <unit>.md · .xlsx · .html
+  result/  index.html  (audience-facing; travels on its own)
+           ph-01/ · st-03/ · st-03/pr-01/      each: <unit>.md · .xlsx · .html · figures/
 ```
 
-Process reports **nest inside their stage**, so the path carries the scope and step ids restart at `pr-01` in every stage. Stages stay **siblings of phases, never nested under them** — stages serve phases many-to-many, and nesting would force the false one-to-one tree Pass 2 exists to prevent. Ids are lowercase, zero-padded and slug-free (`ph-01`, `st-03`, `pr-02`), deliberately unlike the specification set's `PH<n>-<slug>.md`, because a report and the spec it reports on should not be confusable at a glance. **There is no manifest file**: the tree is the register of what exists, the governance set is the register of what should exist, and the dashboard reports the difference.
+Process reports **nest inside their stage** (`st-03/pr-02/` *is* step 2 of stage 03, so the path carries the scope and step ids restart each stage). Stages stay **siblings of phases, never nested** — they serve phases many-to-many, and nesting would force the false one-to-one tree Pass 2 exists to prevent. Ids are lowercase, zero-padded and slug-free. **There is no manifest**: the tree registers what exists, the governance set registers what should exist, and the dashboard reports the difference.
 
-Each unit gets the same triplet:
-- **`.md`** — the article, in fixed section order: identity and traceability, abstract, background, data (every input a register-row id with units and licence), method (equations, symbols with units, citing the method file rather than restating it), **implementation** (literal commands, code commit, interpreter and package versions, solver, seeds, config keys — the replication core), results (every number gated `[verified]`/`[compute]`, ranges not point estimates), verification (re-derived by a different route against a tolerance stated *before* the comparison), limitations, what would change the conclusion, provenance and reproduction, references.
-- **`.sqlite`** (relational or large) **or `.xlsx`** (a reviewer must open it without tooling) — never both. Fixed table names so any unit's file reads the same: `report_manifest`, `datasets`, `inputs`, `processed_*`, `outputs_*`, `numbers`, `figures`, `provenance`. Where inputs are too big or their licence forbids redistribution, `processed` and `outputs` are embedded and each raw input becomes a **reference row** with its checksum and the reason. The `numbers` table is what makes "every figure traces to a source" checkable by query rather than by reading prose.
-- **`.html`** — the article rendered interactively. **Built by [`visualizer`](#visualizer), commissioned by `research-director`**, which specifies the page and reviews it but writes no HTML and no generator code — the pages carry the figures, and figures are that agent's craft. Generated by `reports/build.py` from the `.md` and the data file, never hand-written: self-contained and offline (no CDN, no build step), deterministic, with a TOC, collapsible sections, sortable tables, a `[verified]`/`[compute]` filter, and each figure beside the query that regenerates it. A page that would state a number absent from the data file's `numbers` table is a defect, not a gap to type in.
-
-Plus one **`reports/index.html`** over the whole set — every unit, its status and gate state, the objective it evidences, and **which units are missing their report**, that last being the reason it is a dashboard and not a folder. Three levels, one home per fact: the process report holds the primitive record, the stage report **cites** its process reports, the phase report returns a verdict per objective. And the constraint holds throughout — `research-director` scaffolds, structures and gates the set; the owning agents supply the results; `visualizer` builds every page; the review chain moves a number to `[verified]`; `provenance-auditor` clears the licence and the trace before the set travels. It still never produces a figure, writes HTML, or marks a number `[verified]` itself.
+`research-director` gates completeness — log triplet present, result triplet present or explicitly `n/a`, no empty section, every stated number carried in that unit's `numbers` table, at least one figure per result report — and names the incomplete units. It never fills a results table, never marks a number `[verified]`, and never writes HTML.
 - **Not for**: planning a single coding task → `planner-and-qc-lead`; client communication → `consultant`; the progress/team dashboards and process policing → `report-manager`; the internal lead *function* inside `energy-finance-team` is unrelated to this agent
+
+### `log-reporter`
+Writes the **log report** for a unit — `claude-docs/reports/log/<unit>/`. The operational record: what was done chronologically, the literal commands with environment, versions and seeds, inputs and outputs with fingerprints, deviations from the stage runbook, timing and cost, the one command that reproduces the unit, and what the next stage receives. Its centre of gravity is **What failed** — errors, retries, dead ends, abandoned approaches, a portal that changed, a solve that would not converge — each with what it cost and what was done instead. *A log with no failures recorded is a log nobody kept.* Direct and complete rather than polished; nobody presents from it.
+- **Not for**: the analysis, its statistics or figures → `result-reporter`; progress dashboards and process conformance → `report-manager`; data provenance and licence → `provenance-auditor`
+
+### `result-reporter`
+Writes the **result report** for a unit — `claude-docs/reports/result/<unit>/`. This is the family that travels to the client. The `.md` is a **journal article**: why the analysis was conducted, the data, the **data-handling result** (rows in and out per step, drops and their reasons, join match rates, reconciliation residuals, imputation extent), the **descriptive statistics** (distributions, missingness, coverage, outliers), the methods, and the results carried by **figures** — every number gated `[verified]`/`[compute]`, given as a range, with absolute magnitudes beside every percentage. The `.html` is a **conference presentation**: one idea per slide, figure-dominant, legible from the back of a room, keyboard-navigable, printable one slide per page, with speaker notes for the caveats a slide cannot show. A unit with no analytical output declares `result: n/a` rather than shipping a hollow report.
+- **Not for**: commands, errors and dead ends → `log-reporter`; building the figures or the deck → pair with `visualizer`; client correspondence and framing → `consultant`
 
 ### `consultant`
 The only customer-facing role. Runs the engagement — inception, progress meetings, data and decision requests, review rounds, change control, early warning of delay — and translates technical output into language the client can read, present, and defend without you in the room. Two hard boundaries: **never sends anything** (drafts only; the user sends), and **never accepts scope** (any request outside `charter.md` becomes a change request routed to `research-director`). Keeps an append-only engagement register of every commitment, request and decision.

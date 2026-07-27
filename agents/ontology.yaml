@@ -49,6 +49,8 @@ agents:
   - {id: research-director, tier: "0", scope: user, model: opus,   access: read-write, role: "Owns research design & governance from the contract — charter, phases, stages, process, toolbox, tracker, team, and the reports/ record set"}
   - {id: consultant,        tier: "0", scope: user, model: opus, access: read-write, role: "The only customer-facing role — engagement + plain-language translation; drafts only, never sends, never accepts scope"}
   - {id: report-manager,    tier: "0", scope: user, model: opus, access: read-write, role: "Process-conformance governance + generated HTML progress & team dashboards; reads the docs, never edits them"}
+  - {id: log-reporter,      tier: "0", scope: user, model: opus, access: read-write, role: "The log report per unit — what was done and what failed: commands, environment, fingerprints, dead ends, deviations, reproduction"}
+  - {id: result-reporter,   tier: "0", scope: user, model: opus, access: read-write, role: "The result report per unit — the analysis as a journal article, plus a conference-presentation deck; data handling, statistics, figures"}
 
   # Tier 1 — orchestration
   - {id: planner-and-qc-lead, tier: "1", scope: user, model: opus, access: read-only, role: "Plans a non-trivial task, decomposes it into reviewable steps, produces a QC checklist, routes to agents"}
@@ -109,8 +111,17 @@ relations:
   - {from: research-director, type: delegates_to, to: planner-and-qc-lead, note: a single coding task}
   - {from: research-director, type: delegates_to, to: consultant, note: client communication}
   - {from: research-director, type: delegates_to, to: report-manager, note: the progress and team dashboards, and process policing}
-  - {from: research-director, type: hands_off_to, to: visualizer, note: "Pass 7 — builds reports/build.py, every report .html and the index.html dashboard"}
-  - {from: research-director, type: hands_off_to, to: provenance-auditor, note: "Pass 7 — licence and trace check before the report set travels"}
+  - {from: research-director, type: hands_off_to, to: log-reporter, note: "the operational record per unit — what was done, what failed"}
+  - {from: research-director, type: hands_off_to, to: result-reporter, note: "the analysis article and its presentation deck per unit"}
+  - {from: research-director, type: delegates_to, to: log-reporter, note: writing the log report itself}
+  - {from: research-director, type: delegates_to, to: result-reporter, note: writing the analysis report itself}
+  - {from: log-reporter, type: delegates_to, to: result-reporter, note: the analysis, its findings, statistics and figures}
+  - {from: result-reporter, type: delegates_to, to: log-reporter, note: commands, errors and dead ends}
+  - {from: result-reporter, type: pairs_with, to: visualizer, note: every figure, and the conference-presentation deck}
+  - {from: log-reporter, type: hands_off_to, to: visualizer, note: the navigable record page}
+  - {from: result-reporter, type: hands_off_to, to: provenance-auditor, note: licence and trace clearance before the result set travels}
+  - {from: result-reporter, type: hands_off_to, to: consultant, note: audience framing when a deck goes to a client}
+  - {from: research-director, type: hands_off_to, to: visualizer, note: builds reports/_build/, every page, both indexes and the decks}
   - {from: consultant, type: delegates_to, to: research-director, note: any out-of-scope request becomes a change request}
   - {from: consultant, type: delegates_to, to: writing-support-team, note: full formal deliverables}
   - {from: report-manager, type: delegates_to, to: research-director, note: designing the process}
@@ -230,16 +241,17 @@ workflows:
       - research-director (Conformance, if the charter/contract changed) → research-director (Tracking)
       - report-manager (dashboards) → consultant (if a figure already went to the client)
       - "research-director writes .claude/skills/<project>-refresh/SKILL.md so the next refresh is one invocation"
-  - id: reporting-the-work
+  - id: interim-reporting
     steps:
-      - "research-director (Reporting 7.0 → scaffold reports/: ph-<nn>/, st-<nn>/ with pr-<nn>/ nested inside; one triplet per unit)"
-      - "research-director writes Identity, Background, Method reference, Traceability, reproduction contract"
-      - "the unit's owning agent writes Results, Verification, Limitations and fills the .sqlite/.xlsx (numbers, figures, provenance)"
-      - "review chain gates each number [compute] -> [verified]; research-director never marks one itself"
-      - "visualizer builds reports/build.py, every unit .html and the index.html dashboard — self-contained, offline, deterministic"
-      - "provenance-auditor checks licence and trace before the set travels (no unredistributable raw data embedded)"
-      - "research-director gates completeness: three files per unit, no empty section, every stated number present in `numbers`"
-      - "after any Pass 6 refresh, the refreshed units' reports revert to [compute] and are rebuilt"
+      - "step-by-step, not once at the end: fires at every process-step completion, stage exit and phase gate"
+      - "research-director decides which units need a log report, a result report, or `result: n/a — no analytical output`"
+      - "log-reporter writes reports/log/<unit>/ — what was done, what failed, commands, fingerprints, deviations, reproduction"
+      - "result-reporter writes reports/result/<unit>/ — the journal article: why, data handling, statistics, methods, results"
+      - "visualizer builds every figure, both .html families, the conference decks and the two indexes — offline, deterministic"
+      - "review chain gates each number [compute] -> [verified]; neither reporter marks its own"
+      - "provenance-auditor clears licence and trace before the result set travels; consultant frames any deck going to a client"
+      - "research-director gates completeness and names the incomplete units — it writes neither family"
+      - "after any Pass 6 refresh, the refreshed units' figures revert to [compute] and their decks are rebuilt"
   - id: feature-development
     steps:
       - planner-and-qc-lead

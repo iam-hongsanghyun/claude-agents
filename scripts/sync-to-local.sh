@@ -35,6 +35,8 @@ AGENTS=(
     consultant
     research-director
     report-manager
+    log-reporter
+    result-reporter
     # Tier 1: Workflow orchestration
     planner-and-qc-lead
     # Tier 2: Code — writing & review
