@@ -10,6 +10,7 @@ ONTOLOGY.md is a GENERATED artefact. Edit agents/ontology.yaml and re-run this s
 never hand-edit ONTOLOGY.md. Output is deterministic (no timestamps) so a re-run on an
 unchanged source produces an identical file — a clean `git diff` means the doc is in sync.
 """
+
 from __future__ import annotations
 
 import pathlib
@@ -18,9 +19,7 @@ import sys
 try:
     import yaml
 except ImportError:  # pragma: no cover - environment guard
-    sys.exit(
-        "PyYAML not found. Run:  uv run --with pyyaml python scripts/render_ontology.py"
-    )
+    sys.exit("PyYAML not found. Run:  uv run --with pyyaml python scripts/render_ontology.py")
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
 SRC = REPO / "agents" / "ontology.yaml"
@@ -220,7 +219,9 @@ def render(data: dict) -> str:
 
     w("---")
     w("")
-    w("Index: [`README.md`](README.md) · Project registry: [`project/README.md`](project/README.md)")
+    w(
+        "Index: [`README.md`](README.md) · Project registry: [`project/README.md`](project/README.md)"
+    )
     w("")
     return "\n".join(out)
 
@@ -231,7 +232,9 @@ def main() -> None:
     n_user = sum(1 for a in data["agents"] if a["scope"] == "user")
     n_proj = sum(1 for a in data["agents"] if a["scope"] == "project")
     n_edges = len(data["relations"])
-    print(f"Wrote {OUT.relative_to(REPO)} — {n_user} user + {n_proj} project agents, {n_edges} edges.")
+    print(
+        f"Wrote {OUT.relative_to(REPO)} — {n_user} user + {n_proj} project agents, {n_edges} edges."
+    )
 
 
 if __name__ == "__main__":

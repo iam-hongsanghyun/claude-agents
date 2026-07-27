@@ -13,6 +13,7 @@ It opens by double-click from the filesystem and works offline, the same contrac
 project dashboards hold. Layout is computed here (deterministic), so the SVG renders even
 with JavaScript disabled; JS adds filtering, selection and the detail panel only.
 """
+
 from __future__ import annotations
 
 import html
@@ -23,7 +24,9 @@ import sys
 try:
     import yaml
 except ImportError:  # pragma: no cover - environment guard
-    sys.exit("PyYAML not found. Run: uv run --no-project --with pyyaml python scripts/render_ontology_html.py")
+    sys.exit(
+        "PyYAML not found. Run: uv run --no-project --with pyyaml python scripts/render_ontology_html.py"
+    )
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
 SRC = REPO / "agents" / "ontology.yaml"
@@ -66,7 +69,7 @@ def load_descriptions() -> dict[str, str]:
 def layout(agents: list[dict], scope: str) -> tuple[dict[str, dict], int, int]:
     """Assign each node a tier column and a row. Deterministic: input order is preserved."""
     pos: dict[str, dict] = {}
-    counts = {t: 0 for t in TIER_ORDER}
+    counts = dict.fromkeys(TIER_ORDER, 0)
     for a in agents:
         if a["scope"] != scope:
             continue
@@ -103,7 +106,9 @@ def edge_path(a: dict, b: dict) -> str:
     return f"M{x1},{ay} C{x1 + bulge},{ay} {x2 + bulge},{by} {x2},{by}"
 
 
-def svg_map(agents: list[dict], relations: list[dict], tier_name: dict[str, str], scope: str, svg_id: str) -> str:
+def svg_map(
+    agents: list[dict], relations: list[dict], tier_name: dict[str, str], scope: str, svg_id: str
+) -> str:
     pos, width, height = layout(agents, scope)
     by_id = {a["id"]: a for a in agents}
     parts: list[str] = []
@@ -113,11 +118,11 @@ def svg_map(agents: list[dict], relations: list[dict], tier_name: dict[str, str]
         f'aria-label="Agent ontology map">'
     )
     parts.append(
-        '<defs>'
+        "<defs>"
         '<marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" '
         'markerHeight="6" orient="auto-start-reverse">'
         '<path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/></marker>'
-        '</defs>'
+        "</defs>"
     )
     # tier headers + column bands
     for t in TIER_ORDER:
@@ -131,11 +136,11 @@ def svg_map(agents: list[dict], relations: list[dict], tier_name: dict[str, str]
         )
         parts.append(
             f'<text class="tierhdr" x="{cx + NODE_W / 2}" y="40" text-anchor="middle">'
-            f'Tier {esc(t)}</text>'
+            f"Tier {esc(t)}</text>"
         )
         parts.append(
             f'<text class="tiersub" x="{cx + NODE_W / 2}" y="58" text-anchor="middle">'
-            f'{esc(tier_name[t])}</text>'
+            f"{esc(tier_name[t])}</text>"
         )
     # edges first, so nodes sit above them
     parts.append('<g class="edges">')
@@ -202,7 +207,7 @@ def render(data: dict, desc: dict[str, str]) -> str:
 
     h: list[str] = []
     a = h.append
-    a("<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\">")
+    a('<!doctype html><html lang="en"><head><meta charset="utf-8">')
     a('<meta name="viewport" content="width=device-width,initial-scale=1">')
     a("<title>Agent Ontology</title>")
     a("<style>")
@@ -281,7 +286,7 @@ tr.t3 td.mono{color:var(--t3)} tr.t4 td.mono{color:var(--t4)}
 footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);
   color:var(--muted);font-size:12.5px}
 """)
-    a("</style></head><body><div class=\"wrap\">")
+    a('</style></head><body><div class="wrap">')
 
     a("<h1>Agent Ontology</h1>")
     a(
@@ -309,17 +314,18 @@ footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);
         ("delegates_to", False),
     ):
         chk = " checked" if on else ""
-        a(
-            f'<label><input type="checkbox" class="ef" value="{rt}"{chk}> '
-            f'<code>{rt}</code></label>'
-        )
-    a('<span class="hint">Click an agent to isolate its relationships. Esc or click blank space to clear.</span>')
+        a(f'<label><input type="checkbox" class="ef" value="{rt}"{chk}> <code>{rt}</code></label>')
+    a(
+        '<span class="hint">Click an agent to isolate its relationships. Esc or click blank space to clear.</span>'
+    )
     a("</div>")
     a('<div class="mapwrap">')
     a(svg_map(agents, relations, tier_name, "user", "map"))
     a("</div>")
-    a('<div class="detail" id="detail"><p class="ph">Select an agent in the map for its role, '
-      "routing boundaries and full description.</p></div>")
+    a(
+        '<div class="detail" id="detail"><p class="ph">Select an agent in the map for its role, '
+        "routing boundaries and full description.</p></div>"
+    )
 
     a("<h2>Project layer</h2>")
     a(
@@ -334,8 +340,10 @@ footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);
     # tiers
     a("<h2>Tiers</h2><table><tr><th>Tier</th><th>Name</th><th>When</th></tr>")
     for t in TIER_ORDER:
-        a(f'<tr class="t{esc(t)}"><td class="mono">{esc(t)}</td><td>{esc(tier_name[t])}</td>'
-          f"<td class=\"desc\">{esc(tier_when[t])}</td></tr>")
+        a(
+            f'<tr class="t{esc(t)}"><td class="mono">{esc(t)}</td><td>{esc(tier_name[t])}</td>'
+            f'<td class="desc">{esc(tier_when[t])}</td></tr>'
+        )
     a("</table>")
 
     # relationship legend
@@ -346,12 +354,16 @@ footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);
 
     # role catalogue
     a("<h2>Agent roles</h2>")
-    a('<p class="lede">Every agent, its role in one line, and the full <code>description</code> '
-      "that decides when it is chosen.</p>")
+    a(
+        '<p class="lede">Every agent, its role in one line, and the full <code>description</code> '
+        "that decides when it is chosen.</p>"
+    )
     for scope, group, title in (("user", user, "User-level"), ("project", proj, "Project-scoped")):
         a(f"<h3>{title}</h3>")
-        a("<table><tr><th>Agent</th><th>Tier</th><th>Model</th>"
-          f"<th>{'Access' if scope == 'user' else 'Project'}</th><th>Role</th></tr>")
+        a(
+            "<table><tr><th>Agent</th><th>Tier</th><th>Model</th>"
+            f"<th>{'Access' if scope == 'user' else 'Project'}</th><th>Role</th></tr>"
+        )
         for ag in sorted(group, key=lambda x: (x["tier"], x["id"])):
             fourth = ag["access"] if scope == "user" else ag.get("project", "")
             full = desc.get(ag["id"], "")

@@ -109,15 +109,26 @@ CLIMADA is a heavy conda stack — GDAL, rasterio, HDF5/h5py, pyproj, xarray, nu
 ```python
 # backend (pip env) — MUST NOT import climada
 import json, subprocess, pathlib
-req = {"hazard": HAZARD_REF, "exposure": EXPOSURE_REF,
-       "return_periods": RETURN_PERIODS, "n_samples": N_SAMPLES, "seed": SEED}
-in_p = SCRATCH / "in.json"; out_p = SCRATCH / "out.json"
+
+req = {
+    "hazard": HAZARD_REF,
+    "exposure": EXPOSURE_REF,
+    "return_periods": RETURN_PERIODS,
+    "n_samples": N_SAMPLES,
+    "seed": SEED,
+}
+in_p = SCRATCH / "in.json"
+out_p = SCRATCH / "out.json"
 in_p.write_text(json.dumps(req))
-r = subprocess.run([f"{CONDA_PREFIX}/bin/python", str(WORKER), str(in_p), str(out_p)],
-                   capture_output=True, text=True, timeout=CLIMADA_TIMEOUT_S)
+r = subprocess.run(
+    [f"{CONDA_PREFIX}/bin/python", str(WORKER), str(in_p), str(out_p)],
+    capture_output=True,
+    text=True,
+    timeout=CLIMADA_TIMEOUT_S,
+)
 if r.returncode or not out_p.exists():
-    raise ClimadaWorkerError(r.stderr[-2000:])   # never treat a missing file as zero loss
-res = json.loads(out_p.read_text())              # eai, freq_curve, bands, provenance
+    raise ClimadaWorkerError(r.stderr[-2000:])  # never treat a missing file as zero loss
+res = json.loads(out_p.read_text())  # eai, freq_curve, bands, provenance
 ```
 
 `CONDA_PREFIX`, `WORKER`, `SEED`, `N_SAMPLES`, `RETURN_PERIODS`, `CLIMADA_TIMEOUT_S` all come from config, never hardcoded. The output JSON's provenance block records hazard id + vintage, exposure source + year, impact-function id, CLIMADA version, conda prefix, and seed — a result with no provenance block is not a result. Confirm hazard and exposure share CRS and resolution before the worker samples intensity at exposure points; that is a gis-analyst job.

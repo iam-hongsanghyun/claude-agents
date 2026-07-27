@@ -45,6 +45,11 @@ packages = ["src/project_name"]
 line-length = 100
 target-version = "py311"
 src = ["src", "tests"]
+# agents/project/ mirrors agents authored inside other repositories. The engagement's own
+# copy is authoritative, so these files must stay byte-identical to their source and are
+# never reformatted here. (ruff >= 0.14 formats python blocks inside markdown, which would
+# otherwise rewrite vendored content and make the mirror diverge from what it mirrors.)
+extend-exclude = ["agents/project"]
 
 [tool.ruff.lint]
 select = [
