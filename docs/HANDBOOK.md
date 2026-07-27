@@ -106,6 +106,7 @@ Every environment-specific value lives in `.env` (gitignored). Mirror the keys (
 
 ```python
 """Typed configuration loaded from .env."""
+
 from __future__ import annotations
 
 import os
@@ -175,6 +176,7 @@ CONFIG = Config.from_env()
 
 ```python
 """Centralized logging."""
+
 from __future__ import annotations
 
 import logging
@@ -215,6 +217,7 @@ def get_logger(name: str) -> logging.Logger:
 ### Usage
 ```python
 from .logger import get_logger
+
 log = get_logger(__name__)
 
 log.info("Loaded %d rows from %s", len(df), path)
@@ -236,6 +239,7 @@ Always use the new generator API and accept a seed parameter:
 ```python
 import numpy as np
 
+
 def simulate(n: int, seed: int) -> np.ndarray:
     rng = np.random.default_rng(seed)
     return rng.standard_normal(n)
@@ -251,7 +255,14 @@ Log Python version, key library versions, and (if relevant) git SHA at the start
 
 ```python
 import sys, numpy as np, scipy, pandas as pd
-log.info("python=%s numpy=%s scipy=%s pandas=%s", sys.version.split()[0], np.__version__, scipy.__version__, pd.__version__)
+
+log.info(
+    "python=%s numpy=%s scipy=%s pandas=%s",
+    sys.version.split()[0],
+    np.__version__,
+    scipy.__version__,
+    pd.__version__,
+)
 ```
 
 ### Determinism
@@ -265,6 +276,7 @@ Currency, energy, power, time-of-day, temperature — all of these have caused r
 
 ```python
 import pint
+
 ureg = pint.UnitRegistry()
 
 energy = 100 * ureg.kilowatt_hour
@@ -344,6 +356,7 @@ Always specify tolerances explicitly:
 
 ```python
 import numpy as np
+
 np.testing.assert_allclose(result, expected, rtol=1e-7, atol=1e-12)
 ```
 
@@ -458,6 +471,7 @@ def experimental_solve(...):
 ### Deprecation
 ```python
 import warnings
+
 
 def old_function():
     warnings.warn(

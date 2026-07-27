@@ -63,6 +63,7 @@ Wrap every collected record in a pydantic model:
 from pydantic import BaseModel, Field
 from datetime import datetime
 
+
 class Filing(BaseModel):
     rcept_no: str = Field(min_length=14, max_length=14)
     corp_code: str
@@ -75,11 +76,14 @@ Or use `pandera` for dataframe-level checks:
 
 ```python
 import pandera as pa
-schema = pa.DataFrameSchema({
-    "ticker": pa.Column(str, pa.Check.str_matches(r"^\d{6}$")),
-    "close": pa.Column(float, pa.Check.greater_than(0)),
-    "date": pa.Column(pa.DateTime),
-})
+
+schema = pa.DataFrameSchema(
+    {
+        "ticker": pa.Column(str, pa.Check.str_matches(r"^\d{6}$")),
+        "close": pa.Column(float, pa.Check.greater_than(0)),
+        "date": pa.Column(pa.DateTime),
+    }
+)
 schema.validate(df)
 ```
 
