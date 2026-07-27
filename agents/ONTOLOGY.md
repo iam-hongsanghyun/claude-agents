@@ -76,6 +76,8 @@ flowchart LR
     kr_power_data_scout["kr-power-data-scout"]
     writing_support_team["writing-support-team"]
   end
+  research_director --> visualizer
+  research_director --> provenance_auditor
   planner_and_qc_lead --> developer
   planner_and_qc_lead --> frontend_developer
   planner_and_qc_lead --> web_app_engineer
@@ -164,7 +166,7 @@ flowchart LR
 |---|---|---|---|---|
 | [`consultant`](consultant.md) | 0 | opus | read-write | The only customer-facing role — engagement + plain-language translation; drafts only, never sends, never accepts scope |
 | [`report-manager`](report-manager.md) | 0 | opus | read-write | Process-conformance governance + generated HTML progress & team dashboards; reads the docs, never edits them |
-| [`research-director`](research-director.md) | 0 | opus | read-write | Owns research design & governance from the contract — charter, phases, stages, process, toolbox, tracker, team |
+| [`research-director`](research-director.md) | 0 | opus | read-write | Owns research design & governance from the contract — charter, phases, stages, process, toolbox, tracker, team, and the reports/ record set |
 | [`planner-and-qc-lead`](planner-and-qc-lead.md) | 1 | opus | read-only | Plans a non-trivial task, decomposes it into reviewable steps, produces a QC checklist, routes to agents |
 | [`auditor`](auditor.md) | 2 | opus | read-only | Pre-merge code audit — no hardcoded values, config externalised, pint, tooling, layout |
 | [`debugger`](debugger.md) | 2 | opus | read-write | Reproduce → isolate root cause → minimal fix; failing test before the fix |
@@ -189,7 +191,7 @@ flowchart LR
 | [`renewable-resource-scientist`](renewable-resource-scientist.md) | 3 | opus | read-write | Wind/solar resource from reanalysis — hub-height extrapolation, bias correction, capacity factors |
 | [`source-reconciliation-analyst`](source-reconciliation-analyst.md) | 3 | opus | read-write | Reconcile disagreeing sources; record the rule; preserve the losing value; gate on tolerance |
 | [`system-dynamics-modeller`](system-dynamics-modeller.md) | 3 | opus | read-write | Stock-and-flow feedback simulation — integration, loop dominance, Vensim/.mdl |
-| [`visualizer`](visualizer.md) | 3 | opus | read-write | Charts/maps/dashboards in code — matplotlib/seaborn/plotly/folium/pydeck |
+| [`visualizer`](visualizer.md) | 3 | opus | read-write | Charts/maps/dashboards in code — matplotlib/seaborn/plotly/folium/pydeck; builds the research report pages and their index |
 | [`energy-finance-team`](energy-finance-team.md) | 4 | opus | research | Energy/ESG/climate/policy research → structured report |
 | [`investment-asset-team`](investment-asset-team.md) | 4 | opus | research | Portfolio/equity/bond/credit/risk research → structured investment report |
 | [`kr-power-data-scout`](kr-power-data-scout.md) | 4 | opus | research | Korean datasets + what a metric actually measures (설비 vs 발전, 발전단 vs 송전단, SMP vs 정산단가) |
@@ -216,6 +218,8 @@ flowchart LR
 
 ### `hands_off_to`
 
+- `research-director` &rarr; `visualizer` — Pass 7 — builds reports/build.py, every report .html and the index.html dashboard
+- `research-director` &rarr; `provenance-auditor` — Pass 7 — licence and trace check before the report set travels
 - `planner-and-qc-lead` &rarr; `developer`
 - `planner-and-qc-lead` &rarr; `frontend-developer`
 - `planner-and-qc-lead` &rarr; `web-app-engineer`
@@ -245,7 +249,7 @@ flowchart LR
 
 - `research-director` &rarr; `planner-and-qc-lead` — a single coding task
 - `research-director` &rarr; `consultant` — client communication
-- `research-director` &rarr; `report-manager` — dashboards
+- `research-director` &rarr; `report-manager` — the progress and team dashboards
 - `consultant` &rarr; `research-director` — any out-of-scope request becomes a change request
 - `consultant` &rarr; `writing-support-team` — full formal deliverables
 - `report-manager` &rarr; `research-director` — designing the process
@@ -341,6 +345,17 @@ Named sequences the edges above compose into.
 1. research-director (Conformance, if the charter/contract changed) → research-director (Tracking)
 1. report-manager (dashboards) → consultant (if a figure already went to the client)
 1. research-director writes .claude/skills/<project>-refresh/SKILL.md so the next refresh is one invocation
+
+### reporting-the-work
+
+1. research-director (Reporting 7.1 → manifest.yaml: one unit per process step, stage and phase; scaffold each article)
+1. research-director writes Identity, Background, Method reference, Traceability, reproduction contract
+1. the unit's owning agent writes Results, Verification, Limitations and fills the .sqlite/.xlsx (numbers, figures, provenance)
+1. review chain gates each number [compute] -> [verified]; research-director never marks one itself
+1. visualizer builds reports/build.py, every unit .html and the index.html dashboard — self-contained, offline, deterministic
+1. provenance-auditor checks licence and trace before the set travels (no unredistributable raw data embedded)
+1. research-director gates completeness: three files per unit, no empty section, every stated number present in `numbers`
+1. after any Pass 6 refresh, the refreshed units' reports revert to [compute] and are rebuilt
 
 ### feature-development
 

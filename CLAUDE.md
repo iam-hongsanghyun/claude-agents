@@ -83,7 +83,7 @@ Where the work is bound by a contract, proposal, or funding agreement, the **con
 ```
 claude-docs/
   README.md   charter.md   tracker.md        (exactly three files at the root)
-  phases/  stages/  process/  toolbox/  team/  engagement/  dashboard/  log/
+  phases/  stages/  process/  toolbox/  team/  reports/  engagement/  dashboard/  log/
 ```
 
 Three agents own it: **`research-director`** (charter → phases → stages → process → toolbox → tracker → team, and re-reads the contract at every gate), **`consultant`** (the only customer-facing role; drafts only, never sends, never accepts scope), **`report-manager`** (process governance + the HTML progress and team dashboards). Non-negotiable throughout: every figure traces to a data-register row or a numbered assumption, nothing is hardcoded, findings are associations rather than causes, and results carry a range rather than a point estimate.

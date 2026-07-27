@@ -46,7 +46,7 @@ relation_types:
 # ---------------------------------------------------------------------------
 agents:
   # Tier 0 — engagement governance
-  - {id: research-director, tier: "0", scope: user, model: opus,   access: read-write, role: "Owns research design & governance from the contract — charter, phases, stages, process, toolbox, tracker, team"}
+  - {id: research-director, tier: "0", scope: user, model: opus,   access: read-write, role: "Owns research design & governance from the contract — charter, phases, stages, process, toolbox, tracker, team, and the reports/ record set"}
   - {id: consultant,        tier: "0", scope: user, model: opus, access: read-write, role: "The only customer-facing role — engagement + plain-language translation; drafts only, never sends, never accepts scope"}
   - {id: report-manager,    tier: "0", scope: user, model: opus, access: read-write, role: "Process-conformance governance + generated HTML progress & team dashboards; reads the docs, never edits them"}
 
@@ -78,7 +78,7 @@ agents:
   - {id: source-reconciliation-analyst, tier: "3", scope: user, model: opus, access: read-write, role: "Reconcile disagreeing sources; record the rule; preserve the losing value; gate on tolerance"}
   - {id: mcp-server-engineer,           tier: "3", scope: user, model: opus, access: read-write, role: "MCP server tool surface — granularity, schemas, recoverable errors, output budgeting, parity"}
   - {id: app-distribution-engineer,     tier: "3", scope: user, model: opus, access: read-write, role: "Double-click .command/.bat/.ps1 launchers for non-technical users; first-run bootstrap"}
-  - {id: visualizer,                    tier: "3", scope: user, model: opus, access: read-write, role: "Charts/maps/dashboards in code — matplotlib/seaborn/plotly/folium/pydeck"}
+  - {id: visualizer,                    tier: "3", scope: user, model: opus, access: read-write, role: "Charts/maps/dashboards in code — matplotlib/seaborn/plotly/folium/pydeck; builds the research report pages and their index"}
   - {id: doc-writer,                    tier: "3", scope: user, model: opus, access: read-write, role: "Code-facing docs — README, CLI manuals, tutorials, ARCHITECTURE, CONTRIBUTING"}
 
   # Tier 4 — research & analysis (no code)
@@ -108,7 +108,9 @@ relations:
   # --- Tier 0 governance & routing ---
   - {from: research-director, type: delegates_to, to: planner-and-qc-lead, note: a single coding task}
   - {from: research-director, type: delegates_to, to: consultant, note: client communication}
-  - {from: research-director, type: delegates_to, to: report-manager, note: dashboards}
+  - {from: research-director, type: delegates_to, to: report-manager, note: the progress and team dashboards, and process policing}
+  - {from: research-director, type: hands_off_to, to: visualizer, note: "Pass 7 — builds reports/build.py, every report .html and the index.html dashboard"}
+  - {from: research-director, type: hands_off_to, to: provenance-auditor, note: "Pass 7 — licence and trace check before the report set travels"}
   - {from: consultant, type: delegates_to, to: research-director, note: any out-of-scope request becomes a change request}
   - {from: consultant, type: delegates_to, to: writing-support-team, note: full formal deliverables}
   - {from: report-manager, type: delegates_to, to: research-director, note: designing the process}
@@ -228,6 +230,16 @@ workflows:
       - research-director (Conformance, if the charter/contract changed) → research-director (Tracking)
       - report-manager (dashboards) → consultant (if a figure already went to the client)
       - "research-director writes .claude/skills/<project>-refresh/SKILL.md so the next refresh is one invocation"
+  - id: reporting-the-work
+    steps:
+      - "research-director (Reporting 7.1 → manifest.yaml: one unit per process step, stage and phase; scaffold each article)"
+      - "research-director writes Identity, Background, Method reference, Traceability, reproduction contract"
+      - "the unit's owning agent writes Results, Verification, Limitations and fills the .sqlite/.xlsx (numbers, figures, provenance)"
+      - "review chain gates each number [compute] -> [verified]; research-director never marks one itself"
+      - "visualizer builds reports/build.py, every unit .html and the index.html dashboard — self-contained, offline, deterministic"
+      - "provenance-auditor checks licence and trace before the set travels (no unredistributable raw data embedded)"
+      - "research-director gates completeness: three files per unit, no empty section, every stated number present in `numbers`"
+      - "after any Pass 6 refresh, the refreshed units' reports revert to [compute] and are rebuilt"
   - id: feature-development
     steps:
       - planner-and-qc-lead
