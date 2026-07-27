@@ -348,7 +348,7 @@ Named sequences the edges above compose into.
 
 ### reporting-the-work
 
-1. research-director (Reporting 7.1 → manifest.yaml: one unit per process step, stage and phase; scaffold each article)
+1. research-director (Reporting 7.0 → scaffold reports/: ph-<nn>/, st-<nn>/ with pr-<nn>/ nested inside; one triplet per unit)
 1. research-director writes Identity, Background, Method reference, Traceability, reproduction contract
 1. the unit's owning agent writes Results, Verification, Limitations and fills the .sqlite/.xlsx (numbers, figures, provenance)
 1. review chain gates each number [compute] -> [verified]; research-director never marks one itself

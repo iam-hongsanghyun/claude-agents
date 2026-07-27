@@ -329,13 +329,53 @@ Every unit gets the same triplet, sharing one base name:
 | Form | What it is |
 |---|---|
 | **`.md`** | The article. Background, data, method, implementation, results, verification, limitations — written so a competent stranger can reproduce it without asking you a question. |
-| **`.sqlite`** (or **`.xlsx`**) | The data behind that article: inputs, processed, outputs, and every number the article states. |
+| **`.xlsx`** (or **`.sqlite`**) | The data behind that article: inputs, processed, outputs, and every number the article states. |
 | **`.html`** | The same article rendered interactively — generated from the `.md`, never written by hand. |
 
-Plus exactly one **`reports/index.html`**: the dashboard over the entire set.
+Choose `.xlsx` when a client or reviewer must open it without tooling; `.sqlite` when the data is
+relational, large, or queried. One or the other per unit, never both — two copies of a table diverge.
 
-Choose `.sqlite` when the data is relational, large, or queried; `.xlsx` when a client or reviewer must
-open it without tooling. One or the other per unit, never both — two copies of a table diverge.
+### 7.0 — The layout: one directory per unit, and the tree is the hierarchy
+
+```
+claude-docs/reports/
+  index.html                dashboard over the whole set
+  build.py                  visualizer's generator — the only other non-report file
+  ph-01/
+    ph-01.md · ph-01.xlsx · ph-01.html
+  st-03/
+    st-03.md · st-03.xlsx · st-03.html      <- the stage report
+    pr-01/
+      pr-01.md · pr-01.xlsx · pr-01.html    <- step 1 of stage 03
+    pr-02/
+      pr-02.md · pr-02.xlsx · pr-02.html
+```
+
+Four rules, and each is doing work:
+
+- **One directory per unit, named for the unit, holding a triplet named for the unit.** `ph-01/ph-01.md`
+  reads redundantly and is worth it: every file is identifiable from its name alone once it has been
+  copied, attached to an email, or dropped into a client's folder.
+- **Process reports nest inside their stage.** `st-03/pr-02/` *is* step 2 of stage 03 — the path carries
+  the scope, so the step id restarts at `pr-01` in every stage and never needs the stage repeated in it.
+- **Stages are siblings of phases, never nested under them.** Stages serve phases **many-to-many**; a
+  stage that serves three phases cannot live inside one of them. Nesting stages under phases would force
+  the false one-to-one tree that Pass 2 exists to prevent, and would duplicate a report three times.
+- **Ids are lowercase, hyphenated, zero-padded to two digits** — `ph-01`, `st-03`, `pr-02` — and carry no
+  slug. They are stable handles; the title lives inside the document. This deliberately differs from the
+  specification set's `PH<n>-<slug>.md` / `ST<nn>-<slug>.md`, because a report and the spec it reports on
+  are different objects and should not be confusable at a glance. The mapping is mechanical:
+
+  | Report | Reports on |
+  |---|---|
+  | `ph-01/` | `phases/PH1-<slug>.md` |
+  | `st-03/` | `stages/ST03-<slug>.md` |
+  | `st-03/pr-02/` | step 2 of `process/ST03-<slug>.md` |
+
+**There is no manifest file.** The tree is the register of what exists, and the governance set is the
+register of what *should* exist — phases from `phases/`, stages from `stages/`, steps from each stage's
+runbook. The dashboard reports the difference. A `manifest.yaml` would be a third copy of both and would
+be the one that goes stale.
 
 ### 7.1 — The article (`.md`)
 
@@ -404,7 +444,7 @@ figures, and figures are that agent's craft, not yours. You write no HTML and no
 rule that keeps you out of `dashboard/`.
 
 Commission `claude-docs/reports/build.py` from `visualizer` once, then have it re-run whenever an article
-or the manifest changes. Give it the spec, not a request for "a page":
+or a unit is added. Give it the spec, not a request for "a page":
 
 - **Self-contained and offline** — no CDN, no build step, no external fonts, no network at open time.
   Opens by double-click from the filesystem, the same contract the project dashboards hold.
@@ -438,13 +478,18 @@ Eighteen reports is exactly how a documentation set rots, unless the levels hold
 A number appears in full in exactly one report — the lowest level that produced it — and is referenced by
 id above that. When a higher-level report needs to show it, it links rather than copies.
 
+The layout makes that cheap to hold. A stage cites its own steps by relative path — `st-03.md` links
+`pr-02/pr-02.md`, one directory down — so a citation is a real link a reader can follow and a broken one
+is a build error rather than a stale sentence. Nothing outside a stage's directory ever needs to name its
+steps.
+
 ### 7.5 — What you write, and what you must not
 
 You are still barred from producing a figure. In this pass that means:
 
 | Artefact | Who |
 |---|---|
-| `manifest.yaml`, the unit list, the section structure, the data-file schema | **you** |
+| The unit list and directory tree, the section structure, the data-file schema | **you** |
 | The article's Identity, Background, Method reference, Traceability, reproduction contract | **you** |
 | The article's Results, Verification, Limitations | the unit's **owning agent** |
 | The data file and every row in `numbers` | the unit's **owning agent** |
@@ -484,13 +529,11 @@ claude-docs/
   toolbox/               README.md, data/, methods/, references/
   team/                  roster.md
   reports/               the Pass 7 report set — the record of what was actually done
-    README.md            index of the set
-    manifest.yaml        which units must have a report, and their state
-    build.py             built by visualizer — generates every .html, deterministic
     index.html           THE dashboard over the whole set — generated, never hand-edited
-    phases/              PH<n>-<slug>.{md,html} + .sqlite|.xlsx
-    stages/              ST<nn>-<slug>.{md,html} + .sqlite|.xlsx
-    process/             ST<nn>-P<k>-<slug>.{md,html} + .sqlite|.xlsx
+    build.py             built by visualizer — generates every .html, deterministic
+    ph-<nn>/             one directory per phase report:  ph-01.{md,xlsx|sqlite,html}
+    st-<nn>/             one per stage report:            st-03.{md,xlsx|sqlite,html}
+      pr-<nn>/           one per process step, nested in its stage: pr-02.{md,xlsx|sqlite,html}
   engagement/            owned by consultant — client-facing record
   dashboard/             owned by report-manager — generated, never hand-edited
   log/                   decisions.md, transitions.md   append-only

@@ -232,7 +232,7 @@ workflows:
       - "research-director writes .claude/skills/<project>-refresh/SKILL.md so the next refresh is one invocation"
   - id: reporting-the-work
     steps:
-      - "research-director (Reporting 7.1 → manifest.yaml: one unit per process step, stage and phase; scaffold each article)"
+      - "research-director (Reporting 7.0 → scaffold reports/: ph-<nn>/, st-<nn>/ with pr-<nn>/ nested inside; one triplet per unit)"
       - "research-director writes Identity, Background, Method reference, Traceability, reproduction contract"
       - "the unit's owning agent writes Results, Verification, Limitations and fills the .sqlite/.xlsx (numbers, figures, provenance)"
       - "review chain gates each number [compute] -> [verified]; research-director never marks one itself"

@@ -74,6 +74,18 @@ Don't reach for plotly when a matplotlib figure is all that's needed — plotly 
 - **Degrade honestly.** Compute layout in Python so the content renders with JavaScript disabled; JS adds filtering, sorting and collapsing only.
 - **Per-unit page:** table of contents, collapsible sections, sortable results tables, a `[verified]`/`[compute]` filter, and every figure shown beside the query or script that regenerates it.
 - **`index.html`:** every phase, its stages, their process steps; each unit's status and gate state; the objective each evidences; and **which units have no report yet** — that last one is the reason it exists.
+
+The layout you walk — one directory per unit, the triplet named for the unit, process steps nested inside their stage:
+
+```
+claude-docs/reports/
+  index.html   build.py
+  ph-01/   ph-01.md · ph-01.xlsx · ph-01.html
+  st-03/   st-03.md · st-03.xlsx · st-03.html
+    pr-01/ pr-01.md · pr-01.xlsx · pr-01.html
+```
+
+There is no manifest to read: discover units by walking the tree, and take what *should* exist from `claude-docs/phases/`, `stages/` and each stage's runbook — the difference between the two is exactly what `index.html` reports. `ph-*` and `st-*` are siblings; never nest a stage under a phase, because a stage can serve several.
 - The full bug catalogue above still applies. A report page is a figure surface, and a colour ramp that fails a colour-blind reader fails just as hard inside an HTML report as in a PDF.
 
 Not yours: the report's prose, its results, or the `[verified]` gate. And the progress/team dashboards under `claude-docs/dashboard/` belong to `report-manager` — different artefact, different owner.
