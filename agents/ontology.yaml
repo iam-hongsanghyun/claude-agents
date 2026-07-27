@@ -1,0 +1,255 @@
+# Agent ontology — the single source of truth for how this pack's agents relate.
+#
+# Nodes are agents; edges are typed relationships. ONTOLOGY.md is GENERATED from this
+# file by `scripts/render_ontology.py` — edit here, never there. Keep one fact in one place:
+# an agent's routing boundaries live in its own `description` frontmatter and are mirrored
+# here as `delegates_to` edges; if the two disagree, the frontmatter wins and this file is
+# wrong. `scope: user` agents install to ~/.claude/agents; `scope: project` agents live in
+# a single engagement's .claude/agents and are mirrored under agents/project/ for visibility.
+
+meta:
+  title: Agent Ontology
+  pack_size_user_level: 32
+  project_agents: 12
+
+tiers:
+  - id: "0"
+    name: Engagement governance
+    when: Work bound by a contract, proposal, or funding agreement; artefacts under claude-docs/.
+  - id: "1"
+    name: Workflow orchestration
+    when: The start of any non-trivial task — plan, decompose, route.
+  - id: "2"
+    name: "Code: writing & review"
+    when: Writing code and the gates that guard it before merge.
+  - id: "3"
+    name: "Code: domain specialists"
+    when: Code in a specific modelling or engineering domain.
+  - id: "4"
+    name: "Research & analysis (no code)"
+    when: Desk research and written deliverables; no code.
+
+# Only edge types the graph actually uses are defined here. Tier-0 governance and the
+# read-only review relation are already expressed by the tier structure and by
+# `gates` / `hands_off_to`, so they get no separate vocabulary.
+relation_types:
+  hands_off_to: A produces work B takes as its input in a standard workflow (a direction of flow).
+  gates: A is a mandatory pass/fail check that must clear before B proceeds.
+  delegates_to: A's own description routes a neighbouring task away to B ("NOT for X — use B").
+  pairs_with: A and B collaborate on one task, neither downstream of the other (symmetric).
+  authored: A (research-director) created this project-scoped agent for one engagement.
+  specializes: a project-scoped agent is a narrowed, engagement-bound form of user-level B.
+  generalized_as: a project-scoped agent was distilled into user-level agent B (use B for new work).
+
+# ---------------------------------------------------------------------------
+# NODES
+# ---------------------------------------------------------------------------
+agents:
+  # Tier 0 — engagement governance
+  - {id: research-director, tier: "0", scope: user, model: opus,   access: read-write, role: "Owns research design & governance from the contract — charter, phases, stages, process, toolbox, tracker, team"}
+  - {id: consultant,        tier: "0", scope: user, model: opus, access: read-write, role: "The only customer-facing role — engagement + plain-language translation; drafts only, never sends, never accepts scope"}
+  - {id: report-manager,    tier: "0", scope: user, model: opus, access: read-write, role: "Process-conformance governance + generated HTML progress & team dashboards; reads the docs, never edits them"}
+
+  # Tier 1 — orchestration
+  - {id: planner-and-qc-lead, tier: "1", scope: user, model: opus, access: read-only, role: "Plans a non-trivial task, decomposes it into reviewable steps, produces a QC checklist, routes to agents"}
+
+  # Tier 2 — code: writing & review
+  - {id: developer,          tier: "2", scope: user, model: opus, access: read-write, role: "Implements/refactors/documents scientific-modelling Python to CLAUDE.md conventions"}
+  - {id: frontend-developer, tier: "2", scope: user, model: opus, access: read-write, role: "Rich React + TypeScript + Vite modelling-GUI browser client"}
+  - {id: web-app-engineer,   tier: "2", scope: user, model: opus, access: read-write, role: "No-build vanilla-JS/d3 web apps + thin FastAPI/http.server backend + static/Vercel deploy"}
+  - {id: tester,             tier: "2", scope: user, model: sonnet,  access: read-only,  role: "Mechanical build gate — tsc/mypy, compile, plain ruff, emoji scan, tests; pass/fail only"}
+  - {id: reviewer,           tier: "2", scope: user, model: opus, access: read-only,  role: "APPROVE/REJECT a diff against the one task asked; scope creep, duplication, contract"}
+  - {id: math-reviewer,      tier: "2", scope: user, model: opus, access: read-only,  role: "Verifies code vs Algorithm docstrings & ALGORITHM.md — stability, signs, indexing, tolerances"}
+  - {id: auditor,            tier: "2", scope: user, model: opus, access: read-only,  role: "Pre-merge code audit — no hardcoded values, config externalised, pint, tooling, layout"}
+  - {id: provenance-auditor, tier: "2", scope: user, model: opus, access: read-only,  role: "Data-provenance & republication-licence audit; every figure traces; clean-checkout reproducibility"}
+  - {id: refactor-architect, tier: "2", scope: user, model: opus, access: read-write, role: "Behavior-preserving restructure — extract, deduplicate, reduce coupling, remove dead code"}
+  - {id: debugger,           tier: "2", scope: user, model: opus, access: read-write, role: "Reproduce → isolate root cause → minimal fix; failing test before the fix"}
+
+  # Tier 3 — code: domain specialists
+  - {id: data-scientist,                tier: "3", scope: user, model: opus, access: read-write, role: "EDA, statistics, ML prototyping in code; schema/dtype/unit alignment; parquet > CSV"}
+  - {id: optimization-modeller,         tier: "3", scope: user, model: opus, access: read-write, role: "LP/MILP/NLP + PyPSA network construction, power flow (n.pf()) and calibration"}
+  - {id: system-dynamics-modeller,      tier: "3", scope: user, model: opus, access: read-write, role: "Stock-and-flow feedback simulation — integration, loop dominance, Vensim/.mdl"}
+  - {id: computational-economist,       tier: "3", scope: user, model: opus, access: read-write, role: "Equilibrium & mechanism modelling — PE/GE, Nash-Cournot, Hotelling, carbon markets"}
+  - {id: renewable-resource-scientist,  tier: "3", scope: user, model: opus, access: read-write, role: "Wind/solar resource from reanalysis — hub-height extrapolation, bias correction, capacity factors"}
+  - {id: climate-risk-modeller,         tier: "3", scope: user, model: opus, access: read-write, role: "CLIMADA physical risk (hazard×exposure×vulnerability, EAI) + NGFS transition risk"}
+  - {id: agent-app-engineer,            tier: "3", scope: user, model: opus, access: read-write, role: "LLM/agent applications — Agent SDK, provider abstraction, guards, budgets, RAG, eval"}
+  - {id: gis-analyst,                   tier: "3", scope: user, model: opus, access: read-write, role: "Geospatial code — CRS, spatial joins, raster/vector, choropleth binning"}
+  - {id: data-collector,                tier: "3", scope: user, model: opus, access: read-write, role: "Ingestion pipelines — scrapers/APIs, schema validation, retry/backoff, idempotent storage"}
+  - {id: source-reconciliation-analyst, tier: "3", scope: user, model: opus, access: read-write, role: "Reconcile disagreeing sources; record the rule; preserve the losing value; gate on tolerance"}
+  - {id: mcp-server-engineer,           tier: "3", scope: user, model: opus, access: read-write, role: "MCP server tool surface — granularity, schemas, recoverable errors, output budgeting, parity"}
+  - {id: app-distribution-engineer,     tier: "3", scope: user, model: opus, access: read-write, role: "Double-click .command/.bat/.ps1 launchers for non-technical users; first-run bootstrap"}
+  - {id: visualizer,                    tier: "3", scope: user, model: opus, access: read-write, role: "Charts/maps/dashboards in code — matplotlib/seaborn/plotly/folium/pydeck"}
+  - {id: doc-writer,                    tier: "3", scope: user, model: opus, access: read-write, role: "Code-facing docs — README, CLI manuals, tutorials, ARCHITECTURE, CONTRIBUTING"}
+
+  # Tier 4 — research & analysis (no code)
+  - {id: energy-finance-team,   tier: "4", scope: user, model: opus, access: research, role: "Energy/ESG/climate/policy research → structured report"}
+  - {id: investment-asset-team, tier: "4", scope: user, model: opus, access: research, role: "Portfolio/equity/bond/credit/risk research → structured investment report"}
+  - {id: kr-power-data-scout,   tier: "4", scope: user, model: opus, access: research, role: "Korean datasets + what a metric actually measures (설비 vs 발전, 발전단 vs 송전단, SMP vs 정산단가)"}
+  - {id: writing-support-team,  tier: "4", scope: user, model: opus, access: research, role: "Reports, white papers, briefs, memos, presentations; parallel KO/EN with a terminology glossary"}
+
+  # Project-scoped — mirrored under agents/project/, NOT installed globally
+  - {id: maritime-regulation-analyst, tier: "3", scope: project, project: IRI-P1, model: opus,   access: read-write, role: "Primary-source IMO regulation — adopted vs draft text, GFI/RU/SU basis, vessel-activity data"}
+  - {id: shipping-transition-expert,  tier: "3", scope: project, project: IRI-P1, model: opus,   access: read-write, role: "Marine-fuel transition sector authority; carries PLANiT's published shipping position; produces no figure"}
+  - {id: data-analyst,                tier: "3", scope: project, project: IRI-P1, model: opus,   access: read-write, role: "Transcription-with-provenance into a sqlite register — verbatim quote + exact locator; refuses to fill a gap"}
+  - {id: resource-scientist,          tier: "3", scope: project, project: OEP-OffshoreWind, model: opus,   access: read-write, role: "Offshore-wind resource module — ERA5, shear, bias correction vs buoys, capacity factors"}
+  - {id: system-value-analyst,        tier: "3", scope: project, project: OEP-OffshoreWind, model: opus,   access: read-write, role: "System LCOE, curtailment, LCoS, surplus absorption — metrics as differences between scenarios"}
+  - {id: dispatch-engineer,           tier: "3", scope: project, project: OEP-OffshoreWind, model: opus,   access: read-write, role: "KPG193 network build, 2024 calibration gate, scenario encoding, ensembled run matrix"}
+  - {id: data-acquisition-engineer,   tier: "3", scope: project, project: OEP-OffshoreWind, model: sonnet, access: read-write, role: "SKR-0008 acquisition layer — fetchers + credential broker + human-input inbox; always a manifest"}
+  - {id: korea-policy-strategist,     tier: "4", scope: project, project: OEP-OffshoreWind, model: opus,   access: read-write, role: "Storyline for MCEE/KPX/National-Assembly audiences; the three contract-required Korea insights"}
+  - {id: oep-contract-compliance,     tier: "0", scope: project, project: OEP-OffshoreWind, model: sonnet, access: read-only,  role: "Pre-submission PASS/BLOCK vs Schedules 1/2/3, payment gateways, KPIs"}
+  - {id: pipeline-orchestrator,       tier: "1", scope: project, project: OEP-OffshoreWind, model: opus,   access: read-write, role: "START HERE project lead — reads pipeline state, dispatches to role agents, batches asks"}
+  - {id: interim-reporter,            tier: "0", scope: project, project: OEP-OffshoreWind, model: sonnet, access: read-write, role: "Stage reports that lead with the ask and are honest about failure"}
+  - {id: leader,                      tier: "1", scope: project, project: project_bifrost, model: inherit, access: read-write, role: "Feature triage → scoped task to developer → reviewer → commit/push/merge"}
+
+# ---------------------------------------------------------------------------
+# EDGES
+# ---------------------------------------------------------------------------
+relations:
+  # --- Tier 0 governance & routing ---
+  - {from: research-director, type: delegates_to, to: planner-and-qc-lead, note: a single coding task}
+  - {from: research-director, type: delegates_to, to: consultant, note: client communication}
+  - {from: research-director, type: delegates_to, to: report-manager, note: dashboards}
+  - {from: consultant, type: delegates_to, to: research-director, note: any out-of-scope request becomes a change request}
+  - {from: consultant, type: delegates_to, to: writing-support-team, note: full formal deliverables}
+  - {from: report-manager, type: delegates_to, to: research-director, note: designing the process}
+  - {from: report-manager, type: delegates_to, to: consultant, note: client-facing writing}
+  - {from: report-manager, type: delegates_to, to: visualizer, note: figures inside a deliverable}
+
+  # --- Feature-development pipeline ---
+  - {from: planner-and-qc-lead, type: hands_off_to, to: developer}
+  - {from: planner-and-qc-lead, type: hands_off_to, to: frontend-developer}
+  - {from: planner-and-qc-lead, type: hands_off_to, to: web-app-engineer}
+  - {from: developer, type: hands_off_to, to: math-reviewer, note: if math changed}
+  - {from: optimization-modeller, type: hands_off_to, to: math-reviewer, note: mandatory when formulation changes}
+  - {from: math-reviewer, type: hands_off_to, to: tester}
+  - {from: developer, type: hands_off_to, to: tester}
+  - {from: frontend-developer, type: hands_off_to, to: tester}
+  - {from: web-app-engineer, type: hands_off_to, to: tester}
+  - {from: mcp-server-engineer, type: hands_off_to, to: tester}
+  - {from: tester, type: gates, to: reviewer}
+  - {from: reviewer, type: hands_off_to, to: auditor, note: reviewer before commit, auditor before merge}
+  - {from: debugger, type: hands_off_to, to: developer}
+  - {from: refactor-architect, type: hands_off_to, to: auditor}
+
+  # --- Code boundary routing (from descriptions' "NOT for X — use Y") ---
+  - {from: developer, type: delegates_to, to: frontend-developer, note: React/TS UI}
+  - {from: developer, type: delegates_to, to: doc-writer, note: code-facing docs}
+  - {from: frontend-developer, type: delegates_to, to: web-app-engineer, note: no-build vanilla-JS web apps}
+  - {from: frontend-developer, type: delegates_to, to: visualizer, note: matplotlib/plotly figures}
+  - {from: web-app-engineer, type: delegates_to, to: frontend-developer, note: rich React+Vite modelling GUIs}
+  - {from: web-app-engineer, type: delegates_to, to: developer, note: scientific-modelling Python core}
+  - {from: web-app-engineer, type: delegates_to, to: mcp-server-engineer, note: the MCP tool surface}
+  - {from: web-app-engineer, type: delegates_to, to: app-distribution-engineer, note: double-click desktop launchers}
+  - {from: app-distribution-engineer, type: delegates_to, to: web-app-engineer, note: cloud/static web deploy}
+  - {from: app-distribution-engineer, type: delegates_to, to: mcp-server-engineer, note: MCP client registration}
+
+  # --- Modelling-paradigm boundaries ---
+  - {from: optimization-modeller, type: delegates_to, to: system-dynamics-modeller, note: stock-and-flow feedback}
+  - {from: optimization-modeller, type: delegates_to, to: computational-economist, note: market-clearing / game-theoretic equilibria}
+  - {from: optimization-modeller, type: delegates_to, to: energy-finance-team, note: energy market research}
+  - {from: system-dynamics-modeller, type: delegates_to, to: optimization-modeller, note: LP/MILP/NLP}
+  - {from: system-dynamics-modeller, type: delegates_to, to: computational-economist, note: equilibria}
+  - {from: computational-economist, type: delegates_to, to: optimization-modeller, note: a single LP/MILP/NLP program}
+  - {from: computational-economist, type: delegates_to, to: system-dynamics-modeller, note: stock-and-flow simulation}
+  - {from: computational-economist, type: delegates_to, to: energy-finance-team, note: market/policy desk research}
+
+  # --- Science pairings ---
+  - {from: renewable-resource-scientist, type: pairs_with, to: gis-analyst, note: CRS / zone→node mapping}
+  - {from: renewable-resource-scientist, type: pairs_with, to: math-reviewer, note: extrapolation & mapping math}
+  - {from: renewable-resource-scientist, type: delegates_to, to: optimization-modeller, note: the dispatch that consumes the profiles}
+  - {from: renewable-resource-scientist, type: delegates_to, to: kr-power-data-scout, note: what a dataset/metric means}
+  - {from: climate-risk-modeller, type: pairs_with, to: gis-analyst, note: hazard/exposure CRS & resolution alignment}
+  - {from: climate-risk-modeller, type: delegates_to, to: energy-finance-team, note: no-code climate research}
+  - {from: climate-risk-modeller, type: delegates_to, to: web-app-engineer, note: the map/dashboard UI}
+
+  # --- LLM/agent applications ---
+  - {from: agent-app-engineer, type: delegates_to, to: mcp-server-engineer, note: the MCP tool surface it consumes}
+  - {from: agent-app-engineer, type: delegates_to, to: web-app-engineer, note: the chat UI}
+  - {from: agent-app-engineer, type: delegates_to, to: developer, note: generic Python}
+  - {from: agent-app-engineer, type: delegates_to, to: data-scientist, note: the analysis a tool returns}
+
+  # --- Data flow ---
+  - {from: kr-power-data-scout, type: hands_off_to, to: data-collector, note: dossier → build the fetcher}
+  - {from: data-collector, type: hands_off_to, to: source-reconciliation-analyst, note: if it overlaps a source we hold}
+  - {from: data-collector, type: hands_off_to, to: data-scientist, note: analyse what was collected}
+  - {from: source-reconciliation-analyst, type: hands_off_to, to: provenance-auditor}
+  - {from: provenance-auditor, type: hands_off_to, to: auditor}
+  - {from: data-scientist, type: delegates_to, to: visualizer, note: the charts}
+
+  # --- Research → deliverable ---
+  - {from: energy-finance-team, type: hands_off_to, to: writing-support-team, note: formal document}
+  - {from: investment-asset-team, type: hands_off_to, to: writing-support-team, note: formal document}
+  - {from: energy-finance-team, type: delegates_to, to: optimization-modeller, note: optimization model code}
+  - {from: energy-finance-team, type: delegates_to, to: investment-asset-team, note: portfolio analysis}
+  - {from: doc-writer, type: delegates_to, to: writing-support-team, note: reports/memos/presentations}
+  - {from: writing-support-team, type: delegates_to, to: doc-writer, note: code-facing docs}
+
+  # --- Project agents: origin, specialization, promotion ---
+  - {from: research-director, type: authored, to: maritime-regulation-analyst}
+  - {from: research-director, type: authored, to: shipping-transition-expert}
+  - {from: research-director, type: authored, to: data-analyst}
+  - {from: research-director, type: authored, to: resource-scientist}
+  - {from: research-director, type: authored, to: system-value-analyst}
+  - {from: research-director, type: authored, to: dispatch-engineer}
+  - {from: research-director, type: authored, to: data-acquisition-engineer}
+  - {from: research-director, type: authored, to: korea-policy-strategist}
+  - {from: research-director, type: authored, to: oep-contract-compliance}
+  - {from: research-director, type: authored, to: pipeline-orchestrator}
+  - {from: research-director, type: authored, to: interim-reporter}
+  - {from: resource-scientist, type: generalized_as, to: renewable-resource-scientist}
+  - {from: data-acquisition-engineer, type: specializes, to: data-collector}
+  - {from: dispatch-engineer, type: specializes, to: optimization-modeller}
+  - {from: system-value-analyst, type: specializes, to: optimization-modeller}
+  - {from: data-analyst, type: specializes, to: provenance-auditor}
+  - {from: interim-reporter, type: specializes, to: report-manager}
+  - {from: korea-policy-strategist, type: specializes, to: energy-finance-team}
+  - {from: pipeline-orchestrator, type: specializes, to: planner-and-qc-lead}
+  - {from: leader, type: specializes, to: planner-and-qc-lead}
+
+# ---------------------------------------------------------------------------
+# WORKFLOWS — named sequences the edges above compose into
+# ---------------------------------------------------------------------------
+workflows:
+  - id: contracted-engagement
+    steps:
+      - research-director (Inception → charter, confirm with user)
+      - research-director (Design → phases, stages, process, toolbox)
+      - research-director (Team → roster; new agents only for real gaps)
+      - consultant (inception pack, data + decision requests)
+      - "per stage: stage owners → review chain → research-director (Tracking) → report-manager (governance + dashboards)"
+      - "at each gate: research-director (Conformance) → report-manager → consultant"
+  - id: refresh-after-data-or-logic-update
+    steps:
+      - research-director (Refresh 6.1-6.2 → fingerprint every stage's declared inputs)
+      - research-director (Refresh 6.3 → stale set + transitive downstream closure, topological order)
+      - "re-run only that closure: stage owners → review chain (re-armed; re-run figures revert to [compute])"
+      - "skipped stages recorded with the fingerprint that proves the skip"
+      - research-director (Refresh 6.4 → iterate to a fixpoint, max five sweeps)
+      - research-director (Conformance, if the charter/contract changed) → research-director (Tracking)
+      - report-manager (dashboards) → consultant (if a figure already went to the client)
+      - "research-director writes .claude/skills/<project>-refresh/SKILL.md so the next refresh is one invocation"
+  - id: feature-development
+    steps:
+      - planner-and-qc-lead
+      - developer / frontend-developer / web-app-engineer
+      - math-reviewer (if math changed) / optimization-modeller (if LP/MILP changed)
+      - data-scientist (if data I/O changed) / visualizer (if charts)
+      - tester (mechanical gate)
+      - reviewer (judgment gate, before commit)
+      - auditor (before merge)
+  - id: bug-fix
+    steps: [debugger, developer / frontend-developer, tester, reviewer, auditor]
+  - id: refactor
+    steps: [refactor-architect, auditor]
+  - id: research-to-report
+    steps: [energy-finance-team / investment-asset-team, writing-support-team]
+  - id: data-pipeline
+    steps: [kr-power-data-scout, data-collector, source-reconciliation-analyst, provenance-auditor, data-scientist]
+  - id: energy-model
+    steps: [kr-power-data-scout, data-collector, renewable-resource-scientist, optimization-modeller, math-reviewer, visualizer]
+  - id: llm-application
+    steps: [agent-app-engineer, mcp-server-engineer, web-app-engineer, tester, reviewer]
+  - id: mcp-surface
+    steps: [mcp-server-engineer, tester, reviewer, app-distribution-engineer]
+  - id: before-publishing
+    steps: [provenance-auditor, auditor, research-director (Conformance)]
