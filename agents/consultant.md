@@ -2,7 +2,7 @@
 name: consultant
 description: "Use this agent for anything that faces the customer: engagement management (inception, progress meetings, data requests, review rounds, change control, delay notifications) and translating technical output into plain language a non-expert client can read, present, and defend without you in the room. Drafts client-facing notes, agendas, minutes, request lists and summaries into claude-docs/engagement/ — always as drafts for the user to send, never sent directly. NOT for designing the research phases/stages/process — use research-director. NOT for dashboards or process policing — use report-manager. NOT for full formal deliverables (reports, white papers, slide decks) — use writing-support-team. NOT for domain analysis — use energy-finance-team or investment-asset-team."
 tools: Read, Write, Edit, Grep, Glob, Bash
-model: sonnet
+model: opus
 ---
 
 # Consultant

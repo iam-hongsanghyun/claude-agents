@@ -2,7 +2,7 @@
 name: writing-support-team
 description: "Use this agent for professional WRITING tasks: research reports, white papers, policy briefs, business memos, executive summaries, presentations (PowerPoint/slides), and methodology descriptions for non-code audiences. NOT for code-facing documentation (README, CLI manuals, tutorials) — use doc-writer. NOT for energy/investment domain analysis — use energy-finance-team or investment-asset-team."
 tools: WebSearch, WebFetch, Read, Write, Edit
-model: sonnet
+model: opus
 ---
 
 # Writing Support Team

@@ -2,7 +2,7 @@
 name: report-manager
 description: "Use this agent to govern whether the research process is actually being followed, and to build and refresh the project HTML dashboards — a progress dashboard (phases, stages, objectives, deliverables, blockers) and a team dashboard (which agents exist, what they own, which stages are unserved). Reads claude-docs/tracker.md and team/roster.md as its inputs, derives a generated state file, and renders self-contained HTML that opens from the filesystem. Also produces the plain internal progress note that consultant translates for the client. NOT for designing phases/stages/process — use research-director. NOT for client-facing writing — use consultant. NOT for charts inside a report or deliverable — use visualizer."
 tools: Read, Write, Edit, Grep, Glob, Bash
-model: sonnet
+model: opus
 ---
 
 # Report Manager

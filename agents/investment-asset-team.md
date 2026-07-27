@@ -2,7 +2,7 @@
 name: investment-asset-team
 description: "Use this agent for investment RESEARCH and analysis: portfolio review, equity valuation, bond/credit analysis, risk metrics, scenario stress-testing. Outputs structured investment reports (not code). NOT for energy market or policy research — use energy-finance-team. NOT for building data pipelines or model code — use data-collector or developer. NOT for code-facing documentation — use doc-writer."
 tools: WebSearch, WebFetch, Bash
-model: sonnet
+model: opus
 ---
 
 # Investment & Asset Analysis Team

@@ -2,7 +2,7 @@
 name: energy-finance-team
 description: "Use this agent for energy/ESG/climate RESEARCH tasks: market analysis, policy tracking, ESG scoring, transition finance, company filings, news synthesis. Outputs structured research reports (not code). NOT for writing optimization models or data pipelines — use optimization-modeller or data-collector. NOT for investment portfolio analysis — use investment-asset-team. NOT for code-facing docs — use doc-writer."
 tools: WebSearch, WebFetch, Bash
-model: sonnet
+model: opus
 ---
 
 # Energy & Finance Research Team (PLANiT Institute)
