@@ -1,6 +1,9 @@
 # Agents — Role Reference
 
-All 26 agents are installed to `~/.claude/agents/` and available globally in every Claude Code session.
+All 32 agents are installed to `~/.claude/agents/` and available globally in every Claude Code session.
+
+- Relationships between agents (tiers, hand-offs, gates, routing boundaries) live in the machine-readable [`ontology.yaml`](./ontology.yaml), rendered to [`ONTOLOGY.md`](./ONTOLOGY.md) and to an interactive map, [`ontology.html`](./ontology.html) — self-contained and offline, with every agent's full role and routing boundaries. **Double-click [`../ontology.command`](../ontology.command)** to regenerate both and open the map.
+- Project-authored agents (created inside a single engagement by `research-director`, **not** installed globally) are registered in [`project/README.md`](./project/README.md).
 
 ---
 
@@ -14,6 +17,7 @@ All 26 agents are installed to `~/.claude/agents/` and available globally in eve
 | Plan a non-trivial task; produce a QC checklist | `planner-and-qc-lead` |
 | Implement a feature / write or refactor Python code | `developer` |
 | React + TypeScript + Vite UI (canvas, maps, grids, charts) | `frontend-developer` |
+| No-build vanilla-JS/d3 web app + thin backend + Vercel deploy | `web-app-engineer` |
 | Mechanical build gate before review (tsc, mypy, lint, emoji scan) | `tester` |
 | Judgment review of a diff: scope, duplication, contract | `reviewer` |
 | Verify math in code vs docstrings vs ALGORITHM.md | `math-reviewer` |
@@ -21,13 +25,18 @@ All 26 agents are installed to `~/.claude/agents/` and available globally in eve
 | Audit data provenance, manifests, licence, reproducibility | `provenance-auditor` |
 | Two sources disagree — decide, and record the rule | `source-reconciliation-analyst` |
 | Design / debug an MCP server tool surface | `mcp-server-engineer` |
+| Build an app that embeds an LLM / Claude Agent SDK (RAG, guardrails, eval) | `agent-app-engineer` |
 | Double-clickable launchers for non-technical users | `app-distribution-engineer` |
 | Find a Korean dataset; establish what a Korean metric measures | `kr-power-data-scout` |
 | Restructure code without changing behavior | `refactor-architect` |
 | Diagnose and fix a bug / crash / wrong output | `debugger` |
 | EDA, ML prototyping, schema alignment in code | `data-scientist` |
 | LP/MILP/NLP optimization code (PyPSA, linopy, pyomo) | `optimization-modeller` |
+| Stock-and-flow / feedback simulation (Vensim-style) | `system-dynamics-modeller` |
+| Equilibrium / carbon-market / game-theoretic economics | `computational-economist` |
 | Geospatial code: CRS, spatial joins, raster/vector | `gis-analyst` |
+| Wind/solar resource, capacity factors from reanalysis | `renewable-resource-scientist` |
+| Physical climate risk (CLIMADA) / NGFS transition risk | `climate-risk-modeller` |
 | Build a data-ingestion pipeline in code | `data-collector` |
 | Charts, maps, dashboards in code | `visualizer` |
 | README, CLI manual, tutorial, troubleshooting guide | `doc-writer` |
@@ -55,7 +64,15 @@ Owns the research design and its governance. Reads the **contract/proposal as th
 - **`tracker.md`** — the single live tracking document that judges whether current activity is actually meeting each phase's objectives;
 - **`team/roster.md`** — which agents the project needs, and new agent definitions where a stage genuinely has no competent owner.
 
-Runs five named passes: Inception → Design → Conformance (re-read the contract; catch a method that answers an easier question) → Tracking → Team. Does not compute figures, does not write code, does not talk to the client.
+Runs six named passes: Inception → Design → Conformance (re-read the contract; catch a method that answers an easier question) → Tracking → Team → **Refresh**. Does not compute figures, does not write code, does not talk to the client.
+
+**Refresh** is the re-run pass, for when the process has already run once and the data or the logic then changes. It treats the engagement as a dependency graph: every stage declares what it *consumes* (register rows, assumption ids, method files, config, code paths, upstream stage outputs) and *produces*, each input is fingerprinted, and a stage is re-run only when a fingerprint actually moved. The rest follows:
+- **Chain reaction** — the transitive downstream closure of every changed stage is re-run in topological order, because a moved fuel price moves the workbook, the runs, the interpretation and the figures behind them.
+- **Output-hash cutoff** — a re-run stage whose output is byte-identical stops the propagation there. This is the only sound way to prune the closure, and it is what keeps a refresh cheap.
+- **Skip with proof** — a skipped stage is recorded with the fingerprint that justified the skip. *"Same data as before"* asserted from memory is indistinguishable from a stage nobody remembered to run.
+- **Fixpoint** — sweep until nothing is stale, capped at five sweeps. Non-convergence means an undeclared cycle or a **non-deterministic stage** (unpinned seed, timestamp in an output, unfixed solver tolerance) — itself the finding.
+- **Gates re-arm** — anything re-run reverts `[verified]` → `[compute]`; a skipped stage keeps its verification, which is exactly what the fingerprint bought; objectives evidenced by a re-run stage are re-judged.
+- Writes `.claude/skills/<project>-refresh/SKILL.md` — the project's own DAG, fingerprint commands, per-stage run commands, gates and stop condition — so the next refresh is a single invocation rather than a re-derivation.
 - **Not for**: planning a single coding task → `planner-and-qc-lead`; client communication → `consultant`; dashboards → `report-manager`; the internal lead *function* inside `energy-finance-team` is unrelated to this agent
 
 ### `consultant`
@@ -82,8 +99,12 @@ Implements features, refactors, documents inline (docstrings). Enforces CLAUDE.m
 - **Not for**: React/TS UI → `frontend-developer`; research reports → `writing-support-team`; code-facing docs → `doc-writer`
 
 ### `frontend-developer`
-React + TypeScript + Vite browser clients for scientific-modelling GUIs: React Flow canvases, Leaflet / d3-geo maps, Glide/TanStack data grids, hand-rolled SVG charts, resizable rails, plugin hosts. Honors the project's existing layout/interaction contract and design system, reuses CSS (no duplication, `:root` variables), keeps the backend↔frontend type contract exact, verifies in the running app, and never adds icons/emojis.
-- **Not for**: Python model code → `developer`; matplotlib/plotly figures → `visualizer`
+The **rich** React + TypeScript + Vite browser client for scientific-modelling GUIs: React Flow canvases, Leaflet / d3-geo maps, Glide/TanStack data grids, hand-rolled SVG charts, resizable rails, plugin hosts. Honors the project's existing layout/interaction contract and design system, reuses CSS (no duplication, `:root` variables), keeps the backend↔frontend type contract exact, verifies in the running app, and never adds icons/emojis.
+- **Not for**: no-build vanilla-JS/d3 web apps & thin backends → `web-app-engineer`; Python model code → `developer`; matplotlib/plotly figures → `visualizer`
+
+### `web-app-engineer`
+No-build, framework-less web apps end to end: vanilla-JS + d3 (topojson/world-atlas) or KaTeX single-file frontends, a thin FastAPI/uvicorn or stdlib `http.server` JSON backend serving the SPA (SQLite or Supabase/Postgres), and static/Vercel/Netlify deploy. Owns the backend↔frontend JSON contract for these apps. The portfolio's dominant web idiom.
+- **Not for**: rich React+TS+Vite modelling GUIs → `frontend-developer`; scientific Python core → `developer`; MCP tool surface → `mcp-server-engineer`; double-click desktop launchers → `app-distribution-engineer`
 
 ### `tester`
 Mechanical build gate — no judgment. Type-check (`tsc`/`mypy`), compile, lint on a **plain** `ruff check .`, emoji/icon scan, tests. Pass/fail report. Runs *before* `reviewer` so the reviewer focuses on intent.
@@ -122,12 +143,28 @@ EDA, statistical analysis, ML prototyping, experiment analysis **in code**. Veri
 - **Not for**: internet research → `energy-finance-team` / `investment-asset-team`; charts → `visualizer`
 
 ### `optimization-modeller`
-LP / MILP / NLP model code using PyPSA, linopy, pyomo, cvxpy. Formulation correctness, infeasibility debugging, solver tuning, duality interpretation.
-- **Not for**: energy market research → `energy-finance-team`
+LP / MILP / NLP model code using PyPSA, linopy, pyomo, cvxpy. Formulation correctness, infeasibility debugging, solver tuning, duality interpretation. Also PyPSA network construction, power flow (`n.pf()`) and calibration.
+- **Not for**: stock-and-flow feedback → `system-dynamics-modeller`; market-clearing / game-theoretic equilibria → `computational-economist`; energy market research → `energy-finance-team`
+
+### `system-dynamics-modeller`
+Stock-and-flow simulation with feedback: integration schemes and dt/stiffness, loop-dominance analysis, Vensim `.mdl` semantics (SMOOTH/DELAY/TREND), unit-strict rates, Monte-Carlo sweeps, calibration. Integrates coupled ODEs of accumulating stocks — not an optimizer.
+- **Not for**: LP/MILP/NLP → `optimization-modeller`; equilibria → `computational-economist`
+
+### `computational-economist`
+Equilibrium & mechanism modelling: partial/general-equilibrium market clearing (tâtonnement, mixed-complementarity), Nash-Cournot/Stackelberg games, Hotelling dynamics, carbon-market design (MSR, CBAM, output-based allocation, collars), welfare/incidence. Equilibrium is a fixed point, not a single optimum.
+- **Not for**: a single LP/MILP/NLP program → `optimization-modeller`; feedback simulation → `system-dynamics-modeller`; market/policy research → `energy-finance-team`
 
 ### `gis-analyst`
 Geospatial **code**: geopandas, shapely, rasterio, xarray. CRS audits (the #1 source of GIS errors), spatial-join pitfalls, raster/vector mismatches, choropleth binning.
 - **Not for**: general charts for reports → `visualizer` or `writing-support-team`
+
+### `renewable-resource-scientist`
+Wind/solar resource from reanalysis and observations: ERA5/atlite cutouts, hub-height shear extrapolation, air-density-corrected power curves, quantile-mapping bias correction vs masts/buoys, capacity-factor series, zone→node aggregation, representative-year & complementarity, solar via pvlib.
+- **Not for**: CRS/geo mechanics → pair with `gis-analyst`; the dispatch that consumes the profiles → `optimization-modeller`; dataset/metric meaning → `data-collector` / `kr-power-data-scout`
+
+### `climate-risk-modeller`
+Physical & transition climate-risk in code: CLIMADA hazard × exposure × vulnerability → impact, expected annual impact, return-period loss curves, Monte-Carlo uncertainty, adaptation cost-benefit; NGFS transition-risk carbon-cost passthrough. Owns the heavy GPL CLIMADA/GDAL stack as an isolated conda subprocess behind a JSON contract.
+- **Not for**: CRS/raster mechanics → pair with `gis-analyst`; no-code climate research → `energy-finance-team`; the map UI → `web-app-engineer`
 
 ### `data-collector`
 Builds **reusable, tested Python pipelines** for web scraping and API ingestion (OpenDART, Yahoo Finance, KOSIS, news APIs, government open data). Polite scraping, retry/backoff, pydantic/pandera schema validation, idempotent storage.
@@ -141,9 +178,13 @@ For when two or more sources disagree about the same quantity and the build must
 The MCP server tool surface — often the *primary* interface to these projects, and sometimes one of several surfaces (MCP / CLI / HTTP) that must not drift. Owns tool granularity (a tool answers a question someone asks, never one tool per table), input schemas with descriptions and vocab-sourced enums, errors an LLM can recover from, **output token budgeting** with explicit truncation reporting, stdio correctness (stdout belongs to the protocol — a stray `print()` kills the client), client registration with an absolute interpreter path, and a parity test across surfaces.
 - **Not for**: generic Python → `developer`; browser UI → `frontend-developer`; the pipeline behind a tool → `data-collector`
 
+### `agent-app-engineer`
+Applications that consume LLMs/agents at runtime: Claude Agent SDK orchestration and session lifecycle, a provider abstraction over the Claude API / `claude -p` CLI / local (Ollama), autonomy sliders with token & wall-clock budgets, PreToolUse approval gates and prompt-injection guards, worktree/venv/sandbox isolation, RAG and structured extraction, and an agent evaluation harness. The layer above the MCP tool surface.
+- **Not for**: the MCP tool surface → `mcp-server-engineer`; the chat UI → `frontend-developer` / `web-app-engineer`; generic Python → `developer`
+
 ### `app-distribution-engineer`
 The ten seconds between a double-click and a working app, for users who never open a terminal. `.command` / `.bat` / `.ps1` launchers, interpreter and venv bootstrap, first-run `.env` seeding that *names* what is missing instead of throwing, port selection and occupancy reporting, Gatekeeper and quarantine, readiness before opening the browser, log files, and one actionable sentence on every failure path. Keeps per-OS variants from drifting by sharing one launch implementation behind thin wrappers, and verifies with an empty-environment simulation rather than a developer shell.
-- **Not for**: application code → `developer` / `frontend-developer`; MCP client registration → `mcp-server-engineer`; README prose → `doc-writer`
+- **Not for**: application code → `developer` / `frontend-developer`; cloud/static web deploy (Vercel/Netlify) → `web-app-engineer`; MCP client registration → `mcp-server-engineer`; README prose → `doc-writer`
 
 ### `visualizer`
 Produces charts, maps, and dashboards **in code**: matplotlib, seaborn, plotly, folium, pydeck. Catches legend-off-canvas, log-scale zeros, twin-axis confusion, color-blind-unsafe palettes. Publication-ready figures.
@@ -200,7 +241,7 @@ Tracking is a pass, not a daemon. It is mandatory at every stage entry, exit, ba
 
 ### Feature development
 ```
-planner-and-qc-lead  →  developer / frontend-developer
+planner-and-qc-lead  →  developer / frontend-developer / web-app-engineer
                      →  math-reviewer      (if math changed)
                      →  optimization-modeller (if LP/MILP changed)
                      →  data-scientist     (if data I/O changed)
@@ -239,16 +280,28 @@ kr-power-data-scout  (dossier: what it measures, level, access, licence)
   →  provenance-auditor         (manifest, licence, register row)
 ```
 
+### Energy model
+```
+kr-power-data-scout  →  data-collector  →  renewable-resource-scientist  →  optimization-modeller  →  math-reviewer  →  visualizer
+```
+
 ### MCP surface
 ```
 mcp-server-engineer  →  tester  →  reviewer
   (+ app-distribution-engineer if it ships with an install script)
 ```
 
+### LLM / agent application
+```
+agent-app-engineer  →  mcp-server-engineer  →  web-app-engineer  →  tester  →  reviewer
+```
+
 ### Before publishing a dataset or deliverable
 ```
 provenance-auditor  →  auditor  →  (contract work) research-director Conformance pass
 ```
+
+The complete relationship graph and every workflow are in [`ONTOLOGY.md`](./ONTOLOGY.md).
 
 ---
 
@@ -266,10 +319,16 @@ provenance-auditor  →  auditor  →  (contract work) research-director Conform
 > Use the energy-finance-team subagent to research Korean offshore wind policy.
 > Use the investment-asset-team subagent to analyze KEPCO's debt profile.
 > Use the writing-support-team subagent to draft a policy brief on carbon markets.
-> Use the optimization-modeller subagent on simplePyPSA_KR/network.py.
+> Use the optimization-modeller subagent on gist2217/code/pypsa_model.py.
+> Use the system-dynamics-modeller subagent on the stock-flow engine in systemdynamics.
+> Use the computational-economist subagent on the K-ETS partial-equilibrium clearing in partial-equilibrium.
 > Use the gis-analyst subagent on the spatial join in gisanalysis/process.py.
-> Use the visualizer subagent to fix the legend in pypsa_gui/charts.py.
-> Use the frontend-developer subagent to add a resizable properties rail in frontend/pathwise.
+> Use the renewable-resource-scientist subagent on the ERA5 hub-height extrapolation for offshore wind.
+> Use the climate-risk-modeller subagent on the CLIMADA impact pipeline in climaterisk.
+> Use the visualizer subagent to fix the legend in a Ragnarok results chart in project_bifrost.
+> Use the frontend-developer subagent to add a resizable properties rail in the pathwise frontend workspace.
+> Use the web-app-engineer subagent to build the d3 dashboard and its FastAPI backend for landscape.
+> Use the agent-app-engineer subagent to add the Claude Agent SDK copilot loop in project_bifrost.
 > Use the tester subagent on the changed files, then the reviewer subagent on the diff.
 > Use the data-collector subagent to build a DART filing ingestion pipeline.
 > Use the doc-writer subagent to write the CLI manual for scripts/run_model.py.
