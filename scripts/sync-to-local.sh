@@ -28,6 +28,8 @@ chmod +x "$SCRIPTS_DEST/claude-scaffold.sh"
 
 # --- subagents (user-level: available in every Claude Code session) ---
 # Only copies our named agents — won't touch other agents you have at ~/.claude/agents/.
+# Project-scoped agents under agents/project/ are deliberately NOT synced: they belong to a
+# single engagement, not every session. See agents/project/README.md.
 AGENTS=(
     # Tier 0: Engagement governance (contracted / funded research projects)
     consultant
@@ -38,6 +40,7 @@ AGENTS=(
     # Tier 2: Code — writing & review
     developer
     frontend-developer
+    web-app-engineer
     tester
     reviewer
     math-reviewer
@@ -48,10 +51,15 @@ AGENTS=(
     # Tier 3: Code — domain specialists
     data-scientist
     optimization-modeller
+    system-dynamics-modeller
+    computational-economist
+    renewable-resource-scientist
+    climate-risk-modeller
     gis-analyst
     data-collector
     source-reconciliation-analyst
     mcp-server-engineer
+    agent-app-engineer
     app-distribution-engineer
     visualizer
     doc-writer
