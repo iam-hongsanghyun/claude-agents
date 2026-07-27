@@ -2,8 +2,11 @@
 # install.sh — first-time setup on a new machine
 #
 # Run after cloning the repo:
-#   git clone https://github.com/iam-hongsanghyun/claude-md.git ~/github/claude-md
+#   git clone https://github.com/iam-hongsanghyun/claude-agents.git ~/github/claude-md
 #   ~/github/claude-md/scripts/install.sh
+#
+# The remote is `claude-agents`; the working copy stays at ~/github/claude-md because
+# project CLAUDE.md files reference ~/github/claude-md/docs/HANDBOOK.md by that path.
 
 set -euo pipefail
 
