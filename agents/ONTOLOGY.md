@@ -4,7 +4,7 @@
 
 > For the **interactive version** — a clickable map with each agent's full role and routing boundaries — open [`ontology.html`](ontology.html) (self-contained, offline, opens by double-click; regenerate with `uv run --no-project --with pyyaml python scripts/render_ontology_html.py`).
 
-34 user-level agents (installed to `~/.claude/agents/`) and 12 project-scoped agents (mirrored under [`project/`](project/README.md), not installed globally). Nodes are agents; edges are typed relationships. The full role reference is [`README.md`](README.md); this document is the machine-readable relationship graph.
+36 user-level agents (installed to `~/.claude/agents/`) and 12 project-scoped agents (mirrored under [`project/`](project/README.md), not installed globally). Nodes are agents; edges are typed relationships. The full role reference is [`README.md`](README.md); this document is the machine-readable relationship graph.
 
 ## Tiers
 
@@ -58,6 +58,7 @@ flowchart LR
   end
   subgraph T3["Tier 3 &middot; Code: domain specialists"]
     data_scientist["data-scientist"]
+    econometrician["econometrician"]
     optimization_modeller["optimization-modeller"]
     system_dynamics_modeller["system-dynamics-modeller"]
     computational_economist["computational-economist"]
@@ -68,6 +69,7 @@ flowchart LR
     data_collector["data-collector"]
     source_reconciliation_analyst["source-reconciliation-analyst"]
     mcp_server_engineer["mcp-server-engineer"]
+    plugin_framework_architect["plugin-framework-architect"]
     app_distribution_engineer["app-distribution-engineer"]
     visualizer["visualizer"]
     doc_writer["doc-writer"]
@@ -99,6 +101,10 @@ flowchart LR
   reviewer --> auditor
   debugger --> developer
   refactor_architect --> auditor
+  plugin_framework_architect --> tester
+  econometrician --> system_dynamics_modeller
+  econometrician -.- visualizer
+  econometrician --> result_reporter
   renewable_resource_scientist -.- gis_analyst
   renewable_resource_scientist -.- math_reviewer
   climate_risk_modeller -.- gis_analyst
@@ -194,9 +200,11 @@ flowchart LR
 | [`data-collector`](data-collector.md) | 3 | opus | read-write | Ingestion pipelines — scrapers/APIs, schema validation, retry/backoff, idempotent storage |
 | [`data-scientist`](data-scientist.md) | 3 | opus | read-write | EDA, statistics, ML prototyping in code; schema/dtype/unit alignment; parquet > CSV |
 | [`doc-writer`](doc-writer.md) | 3 | opus | read-write | Code-facing docs — README, CLI manuals, tutorials, ARCHITECTURE, CONTRIBUTING |
+| [`econometrician`](econometrician.md) | 3 | opus | read-write | Reduced-form causal inference — DiD (staggered-robust), event studies, panel FE, IV/RD, pass-through; owns the estimand and the clustering |
 | [`gis-analyst`](gis-analyst.md) | 3 | opus | read-write | Geospatial code — CRS, spatial joins, raster/vector, choropleth binning |
 | [`mcp-server-engineer`](mcp-server-engineer.md) | 3 | opus | read-write | MCP server tool surface — granularity, schemas, recoverable errors, output budgeting, parity |
 | [`optimization-modeller`](optimization-modeller.md) | 3 | opus | read-write | LP/MILP/NLP + PyPSA network construction, power flow (n.pf()) and calibration |
+| [`plugin-framework-architect`](plugin-framework-architect.md) | 3 | opus | read-write | The host↔plugin contract — SDK surface, entry-point discovery, version negotiation, isolation guards, composition, strangler extraction |
 | [`renewable-resource-scientist`](renewable-resource-scientist.md) | 3 | opus | read-write | Wind/solar resource from reanalysis — hub-height extrapolation, bias correction, capacity factors |
 | [`source-reconciliation-analyst`](source-reconciliation-analyst.md) | 3 | opus | read-write | Reconcile disagreeing sources; record the rule; preserve the losing value; gate on tolerance |
 | [`system-dynamics-modeller`](system-dynamics-modeller.md) | 3 | opus | read-write | Stock-and-flow feedback simulation — integration, loop dominance, Vensim/.mdl |
@@ -246,6 +254,9 @@ flowchart LR
 - `reviewer` &rarr; `auditor` — reviewer before commit
 - `debugger` &rarr; `developer`
 - `refactor-architect` &rarr; `auditor`
+- `plugin-framework-architect` &rarr; `tester` — the isolation guards and the lean-composition matrix
+- `econometrician` &rarr; `system-dynamics-modeller` — an estimate consumed across its interval
+- `econometrician` &rarr; `result-reporter` — the estimate with its design
 - `kr-power-data-scout` &rarr; `data-collector` — dossier → build the fetcher
 - `data-collector` &rarr; `source-reconciliation-analyst` — if it overlaps a source we hold
 - `data-collector` &rarr; `data-scientist` — analyse what was collected
@@ -281,7 +292,14 @@ flowchart LR
 - `web-app-engineer` &rarr; `mcp-server-engineer` — the MCP tool surface
 - `web-app-engineer` &rarr; `app-distribution-engineer` — double-click desktop launchers
 - `app-distribution-engineer` &rarr; `web-app-engineer` — cloud/static web deploy
-- `app-distribution-engineer` &rarr; `mcp-server-engineer` — MCP client registration
+- `app-distribution-engineer` &rarr; `mcp-server-engineer` — which tools the server exposes and their schemas
+- `plugin-framework-architect` &rarr; `mcp-server-engineer` — the MCP tool surface
+- `plugin-framework-architect` &rarr; `developer` — generic Python inside one plugin
+- `plugin-framework-architect` &rarr; `refactor-architect` — behavior-preserving restructure within a single package
+- `plugin-framework-architect` &rarr; `frontend-developer` — the browser UI that hosts plugin panels
+- `plugin-framework-architect` &rarr; `app-distribution-engineer` — launchers and bundle packaging
+- `refactor-architect` &rarr; `plugin-framework-architect` — extraction that crosses a plugin contract
+- `frontend-developer` &rarr; `plugin-framework-architect` — the plugin contract behind a panel host
 - `optimization-modeller` &rarr; `system-dynamics-modeller` — stock-and-flow feedback
 - `optimization-modeller` &rarr; `computational-economist` — market-clearing / game-theoretic equilibria
 - `optimization-modeller` &rarr; `energy-finance-team` — energy market research
@@ -290,6 +308,12 @@ flowchart LR
 - `computational-economist` &rarr; `optimization-modeller` — a single LP/MILP/NLP program
 - `computational-economist` &rarr; `system-dynamics-modeller` — stock-and-flow simulation
 - `computational-economist` &rarr; `energy-finance-team` — market/policy desk research
+- `data-scientist` &rarr; `econometrician` — a coefficient that will be reported as an effect
+- `computational-economist` &rarr; `econometrician` — reduced-form causal estimation of a parameter
+- `system-dynamics-modeller` &rarr; `econometrician` — a parameter that must carry a causal reading
+- `investment-asset-team` &rarr; `econometrician` — estimating an effect from the holdings/voting panel
+- `econometrician` &rarr; `data-scientist` — EDA
+- `econometrician` &rarr; `computational-economist` — structural equilibrium & mechanism modelling
 - `renewable-resource-scientist` &rarr; `optimization-modeller` — the dispatch that consumes the profiles
 - `renewable-resource-scientist` &rarr; `kr-power-data-scout` — what a dataset/metric means
 - `climate-risk-modeller` &rarr; `energy-finance-team` — no-code climate research
@@ -307,6 +331,7 @@ flowchart LR
 ### `pairs_with`
 
 - `result-reporter` &rarr; `visualizer` — every figure
+- `econometrician` &rarr; `visualizer` — the event-study figure and its confidence intervals
 - `renewable-resource-scientist` &rarr; `gis-analyst` — CRS / zone→node mapping
 - `renewable-resource-scientist` &rarr; `math-reviewer` — extrapolation & mapping math
 - `climate-risk-modeller` &rarr; `gis-analyst` — hazard/exposure CRS & resolution alignment
@@ -435,6 +460,24 @@ Named sequences the edges above compose into.
 1. tester
 1. reviewer
 1. app-distribution-engineer
+
+### causal-estimation
+
+1. econometrician (estimand + design + identifying assumption, stated before any fit)
+1. econometrician (treatment-timing table → estimator choice; TWFE only if adoption is common)
+1. econometrician (pre-trend & placebo evidence BEFORE the headline estimate)
+1. visualizer (the event-study figure with CIs)
+1. econometrician (pre-specified robustness set, reported in full)
+1. result-reporter (the estimate as a range, with the assumption attached; downgraded to an association where the design does not license a cause)
+
+### plugin-contract-change
+
+1. plugin-framework-architect (classify: additive / breaking / internal → the semver move)
+1. plugin-framework-architect (contract change + the guard that fails when the boundary is re-crossed)
+1. plugin-framework-architect (composition anchor + result parity: the default build must not move)
+1. tester (guards on every invocation; CI matrix over everything / lean / empty)
+1. reviewer
+1. plugin-framework-architect (template plugin + conformance kit updated in the same commit)
 
 ### before-publishing
 

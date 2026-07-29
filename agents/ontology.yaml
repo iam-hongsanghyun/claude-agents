@@ -7,10 +7,9 @@
 # wrong. `scope: user` agents install to ~/.claude/agents; `scope: project` agents live in
 # a single engagement's .claude/agents and are mirrored under agents/project/ for visibility.
 
-meta:
-  title: Agent Ontology
-  pack_size_user_level: 32
-  project_agents: 12
+# No pack counts live here. Both renderers derive them from the `agents:` nodes below, so a
+# count written here would be a second home for a derived fact — which is exactly how it went
+# stale (it read 32 while the pack was 34). Read the count off ONTOLOGY.md or the node list.
 
 tiers:
   - id: "0"
@@ -69,6 +68,7 @@ agents:
 
   # Tier 3 — code: domain specialists
   - {id: data-scientist,                tier: "3", scope: user, model: opus, access: read-write, role: "EDA, statistics, ML prototyping in code; schema/dtype/unit alignment; parquet > CSV"}
+  - {id: econometrician,                tier: "3", scope: user, model: opus, access: read-write, role: "Reduced-form causal inference — DiD (staggered-robust), event studies, panel FE, IV/RD, pass-through; owns the estimand and the clustering"}
   - {id: optimization-modeller,         tier: "3", scope: user, model: opus, access: read-write, role: "LP/MILP/NLP + PyPSA network construction, power flow (n.pf()) and calibration"}
   - {id: system-dynamics-modeller,      tier: "3", scope: user, model: opus, access: read-write, role: "Stock-and-flow feedback simulation — integration, loop dominance, Vensim/.mdl"}
   - {id: computational-economist,       tier: "3", scope: user, model: opus, access: read-write, role: "Equilibrium & mechanism modelling — PE/GE, Nash-Cournot, Hotelling, carbon markets"}
@@ -79,6 +79,7 @@ agents:
   - {id: data-collector,                tier: "3", scope: user, model: opus, access: read-write, role: "Ingestion pipelines — scrapers/APIs, schema validation, retry/backoff, idempotent storage"}
   - {id: source-reconciliation-analyst, tier: "3", scope: user, model: opus, access: read-write, role: "Reconcile disagreeing sources; record the rule; preserve the losing value; gate on tolerance"}
   - {id: mcp-server-engineer,           tier: "3", scope: user, model: opus, access: read-write, role: "MCP server tool surface — granularity, schemas, recoverable errors, output budgeting, parity"}
+  - {id: plugin-framework-architect,    tier: "3", scope: user, model: opus, access: read-write, role: "The host↔plugin contract — SDK surface, entry-point discovery, version negotiation, isolation guards, composition, strangler extraction"}
   - {id: app-distribution-engineer,     tier: "3", scope: user, model: opus, access: read-write, role: "Double-click .command/.bat/.ps1 launchers for non-technical users; first-run bootstrap"}
   - {id: visualizer,                    tier: "3", scope: user, model: opus, access: read-write, role: "Charts/maps/dashboards in code — matplotlib/seaborn/plotly/folium/pydeck; builds the research report pages and their index"}
   - {id: doc-writer,                    tier: "3", scope: user, model: opus, access: read-write, role: "Code-facing docs — README, CLI manuals, tutorials, ARCHITECTURE, CONTRIBUTING"}
@@ -154,7 +155,17 @@ relations:
   - {from: web-app-engineer, type: delegates_to, to: mcp-server-engineer, note: the MCP tool surface}
   - {from: web-app-engineer, type: delegates_to, to: app-distribution-engineer, note: double-click desktop launchers}
   - {from: app-distribution-engineer, type: delegates_to, to: web-app-engineer, note: cloud/static web deploy}
-  - {from: app-distribution-engineer, type: delegates_to, to: mcp-server-engineer, note: MCP client registration}
+  - {from: app-distribution-engineer, type: delegates_to, to: mcp-server-engineer, note: which tools the server exposes and their schemas}
+
+  # --- Plugin/extension contract ---
+  - {from: plugin-framework-architect, type: delegates_to, to: mcp-server-engineer, note: the MCP tool surface}
+  - {from: plugin-framework-architect, type: delegates_to, to: developer, note: generic Python inside one plugin}
+  - {from: plugin-framework-architect, type: delegates_to, to: refactor-architect, note: behavior-preserving restructure within a single package}
+  - {from: plugin-framework-architect, type: delegates_to, to: frontend-developer, note: the browser UI that hosts plugin panels}
+  - {from: plugin-framework-architect, type: delegates_to, to: app-distribution-engineer, note: launchers and bundle packaging}
+  - {from: plugin-framework-architect, type: hands_off_to, to: tester, note: the isolation guards and the lean-composition matrix}
+  - {from: refactor-architect, type: delegates_to, to: plugin-framework-architect, note: extraction that crosses a plugin contract}
+  - {from: frontend-developer, type: delegates_to, to: plugin-framework-architect, note: the plugin contract behind a panel host}
 
   # --- Modelling-paradigm boundaries ---
   - {from: optimization-modeller, type: delegates_to, to: system-dynamics-modeller, note: stock-and-flow feedback}
@@ -165,6 +176,17 @@ relations:
   - {from: computational-economist, type: delegates_to, to: optimization-modeller, note: a single LP/MILP/NLP program}
   - {from: computational-economist, type: delegates_to, to: system-dynamics-modeller, note: stock-and-flow simulation}
   - {from: computational-economist, type: delegates_to, to: energy-finance-team, note: market/policy desk research}
+
+  # --- Causal estimation boundaries ---
+  - {from: data-scientist, type: delegates_to, to: econometrician, note: a coefficient that will be reported as an effect}
+  - {from: computational-economist, type: delegates_to, to: econometrician, note: reduced-form causal estimation of a parameter}
+  - {from: system-dynamics-modeller, type: delegates_to, to: econometrician, note: a parameter that must carry a causal reading}
+  - {from: investment-asset-team, type: delegates_to, to: econometrician, note: estimating an effect from the holdings/voting panel}
+  - {from: econometrician, type: delegates_to, to: data-scientist, note: EDA, descriptive statistics, ML prediction}
+  - {from: econometrician, type: delegates_to, to: computational-economist, note: structural equilibrium & mechanism modelling}
+  - {from: econometrician, type: hands_off_to, to: system-dynamics-modeller, note: an estimate consumed across its interval, not at its point}
+  - {from: econometrician, type: pairs_with, to: visualizer, note: the event-study figure and its confidence intervals}
+  - {from: econometrician, type: hands_off_to, to: result-reporter, note: the estimate with its design, interval and caveat}
 
   # --- Science pairings ---
   - {from: renewable-resource-scientist, type: pairs_with, to: gis-analyst, note: CRS / zone→node mapping}
@@ -275,5 +297,21 @@ workflows:
     steps: [agent-app-engineer, mcp-server-engineer, web-app-engineer, tester, reviewer]
   - id: mcp-surface
     steps: [mcp-server-engineer, tester, reviewer, app-distribution-engineer]
+  - id: causal-estimation
+    steps:
+      - "econometrician (estimand + design + identifying assumption, stated before any fit)"
+      - "econometrician (treatment-timing table → estimator choice; TWFE only if adoption is common)"
+      - "econometrician (pre-trend & placebo evidence BEFORE the headline estimate)"
+      - visualizer (the event-study figure with CIs)
+      - "econometrician (pre-specified robustness set, reported in full)"
+      - "result-reporter (the estimate as a range, with the assumption attached; downgraded to an association where the design does not license a cause)"
+  - id: plugin-contract-change
+    steps:
+      - "plugin-framework-architect (classify: additive / breaking / internal → the semver move)"
+      - "plugin-framework-architect (contract change + the guard that fails when the boundary is re-crossed)"
+      - "plugin-framework-architect (composition anchor + result parity: the default build must not move)"
+      - tester (guards on every invocation; CI matrix over everything / lean / empty)
+      - reviewer
+      - "plugin-framework-architect (template plugin + conformance kit updated in the same commit)"
   - id: before-publishing
     steps: [provenance-auditor, auditor, research-director (Conformance)]

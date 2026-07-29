@@ -16,7 +16,7 @@ This repo is the source of truth. Local working copy at `~/.claude/templates/` i
 | [`.env.example`](./.env.example) | Environment variable template (incl. `RANDOM_SEED`). |
 | [`.gitignore`](./.gitignore) | Python + scientific-stack ignores (`data/`, `mlruns/`, `*.parquet`, etc.). |
 | [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) | uv-based CI (Python 3.11 + 3.12). |
-| [`agents/`](./agents/) | 34 user-level subagents auto-installed to `~/.claude/agents/` (see below). |
+| [`agents/`](./agents/) | 36 user-level subagents auto-installed to `~/.claude/agents/` (see below). |
 | [`scripts/claude-scaffold.sh`](./scripts/claude-scaffold.sh) | Bootstrap a new project from these templates. |
 | [`scripts/sync-to-local.sh`](./scripts/sync-to-local.sh) | Pull updates from this repo into `~/.claude/{templates,agents}/`. |
 | [`agents/ontology.yaml`](./agents/ontology.yaml) | The agent ontology — tiers, nodes, typed edges, workflows. Source of truth for agent relationships. |
@@ -28,7 +28,7 @@ This repo is the source of truth. Local working copy at `~/.claude/templates/` i
 
 ## Subagents (user-level — available in every Claude Code session)
 
-After running `scripts/install.sh` or `scripts/sync-to-local.sh`, all 34 agents are installed to `~/.claude/agents/` and available in every project — no per-project setup needed.
+After running `scripts/install.sh` or `scripts/sync-to-local.sh`, all 36 agents are installed to `~/.claude/agents/` and available in every project — no per-project setup needed.
 
 See [`agents/README.md`](./agents/README.md) for the full role reference and disambiguation guide.
 
@@ -72,7 +72,8 @@ For work bound by a **contract, proposal, or funding agreement**. All artefacts 
 
 | Agent | When to use |
 |---|---|
-| [`data-scientist`](./agents/data-scientist.md) | EDA, ML, experiment analysis **in code**. Schema/dtype/unit alignment; file-format best practice (parquet > CSV). |
+| [`data-scientist`](./agents/data-scientist.md) | EDA, ML, experiment analysis **in code**. Schema/dtype/unit alignment; file-format best practice (parquet > CSV). **Not** a coefficient reported as an effect (→ `econometrician`). |
+| [`econometrician`](./agents/econometrician.md) | Reduced-form causal inference in code: difference-in-differences (staggered-adoption-robust — Callaway–Sant'Anna / Sun–Abraham, not raw TWFE), event studies and pre-trend evidence, panel fixed effects, IV and RD, pass-through and elasticities, plus the inference layer (clustering level, few-cluster corrections, multiple-hypothesis adjustment). Owns the **estimand**: which comparison the estimator makes, which assumption licenses reading it as an effect, and what would break it. The pack's one licensed exception to "associations, not causes" — and it carries the assumption with every claim. **Not** structural equilibria (→ `computational-economist`), simulation calibration (→ `system-dynamics-modeller`), EDA/ML (→ `data-scientist`). |
 | [`optimization-modeller`](./agents/optimization-modeller.md) | LP/MILP/NLP code: PyPSA, linopy, pyomo, cvxpy. Formulation, infeasibility debugging, solver tuning; PyPSA network construction, power flow (`n.pf()`) and calibration. **Not** stock-and-flow feedback (→ `system-dynamics-modeller`), market-clearing/game-theoretic equilibria (→ `computational-economist`), energy market research (→ `energy-finance-team`). |
 | [`system-dynamics-modeller`](./agents/system-dynamics-modeller.md) | Stock-and-flow simulation with feedback: integration schemes and dt/stiffness, loop-dominance analysis, Vensim `.mdl` semantics (SMOOTH/DELAY/TREND), unit-strict rates, Monte-Carlo sweeps, calibration. Integrates coupled ODEs of accumulating stocks — not an optimizer. **Not** LP/MILP/NLP (→ `optimization-modeller`), equilibria (→ `computational-economist`). |
 | [`computational-economist`](./agents/computational-economist.md) | Equilibrium & mechanism modelling: partial/general-equilibrium market clearing (tâtonnement, mixed-complementarity), Nash-Cournot/Stackelberg games, Hotelling dynamics, carbon-market design (MSR, CBAM, output-based allocation, collars), welfare/incidence. Equilibrium is a fixed point, not a single optimum. **Not** a single LP/MILP/NLP program (→ `optimization-modeller`), feedback simulation (→ `system-dynamics-modeller`), market/policy research (→ `energy-finance-team`). |
@@ -82,6 +83,7 @@ For work bound by a **contract, proposal, or funding agreement**. All artefacts 
 | [`data-collector`](./agents/data-collector.md) | Build ingestion pipelines in code (OpenDART, Yahoo Finance, KOSIS, news APIs). Polite scraping, schema validation (pydantic/pandera), idempotent storage. **Not** ad-hoc research (→ research teams). |
 | [`source-reconciliation-analyst`](./agents/source-reconciliation-analyst.md) | Two sources disagree about the same quantity. Prove the join, classify and quantify the disagreement, get the decision, **record it as a reusable rule** with an id, preserve the losing value in a parallel column, gate on a tolerance. Never silently picks. |
 | [`mcp-server-engineer`](./agents/mcp-server-engineer.md) | MCP server tool surface: tool granularity, schemas with vocab-sourced enums, recoverable errors, output token budgeting with explicit truncation, stdio correctness, client registration, MCP/CLI/HTTP parity. |
+| [`plugin-framework-architect`](./agents/plugin-framework-architect.md) | The host↔plugin contract: the SDK surface a plugin may depend on, entry-point discovery with two-phase load and failure isolation, contract-version negotiation and the semver bump policy, isolation guards checked in both directions, composing a selected plugin set into a shippable product and detecting conflicts, keeping a lean install lean, and strangler extraction of in-tree code into its own distribution while proving the default build stays byte-identical. **Not** the MCP tool surface (→ `mcp-server-engineer`), code inside one plugin (→ `developer`), restructure within a single package (→ `refactor-architect`), the panel-host UI (→ `frontend-developer`). |
 | [`agent-app-engineer`](./agents/agent-app-engineer.md) | Applications that consume LLMs/agents at runtime: Claude Agent SDK orchestration and session lifecycle, a provider abstraction over the Claude API / `claude -p` CLI / local (Ollama), autonomy sliders with token & wall-clock budgets, PreToolUse approval gates and prompt-injection guards, worktree/venv/sandbox isolation, RAG and structured extraction, and an agent evaluation harness. The layer above the MCP tool surface. **Not** the MCP tool surface (→ `mcp-server-engineer`), the chat UI (→ `frontend-developer` / `web-app-engineer`), generic Python (→ `developer`). |
 | [`app-distribution-engineer`](./agents/app-distribution-engineer.md) | Double-clickable `.command` / `.bat` / `.ps1` launchers for non-technical users: cwd and interpreter resolution, venv bootstrap, first-run `.env`, ports, Gatekeeper, actionable failure messages, per-OS parity. **Not** cloud/static web deploy — Vercel/Netlify (→ `web-app-engineer`). |
 | [`visualizer`](./agents/visualizer.md) | Charts, maps, dashboards in code: matplotlib, seaborn, plotly, folium, pydeck. Publication-ready figures. Also builds the **research report pages** commissioned by `research-director` — `reports/build.py`, every unit `.html`, and the `index.html` over the set: self-contained, offline, deterministic, generated from the report's `.md` and data file. |
@@ -119,8 +121,10 @@ For work bound by a **contract, proposal, or funding agreement**. All artefacts 
 | Make it launch by double-click for a non-technical user | `app-distribution-engineer` |
 | Check every figure traces to a source before publishing | `provenance-auditor` |
 | Analyse data in code (EDA, ML) | `data-scientist` |
+| Estimate an effect — DiD, event study, panel FE, IV, RD, pass-through | `econometrician` |
+| Design or defend a plugin contract; extract a module into its own package | `plugin-framework-architect` |
 | Write optimization model code | `optimization-modeller` |
-| Stock-and-flow / feedback simulation (Vensim-style) | `system-dynamics-modeller` |
+| Stock-and-flow / feedback simulation (Vensim-style), SFC/E-SFC accounting | `system-dynamics-modeller` |
 | Equilibrium / carbon-market / game-theoretic economics | `computational-economist` |
 | Wind/solar resource, capacity factors from reanalysis | `renewable-resource-scientist` |
 | Physical climate risk (CLIMADA) / NGFS transition risk | `climate-risk-modeller` |
@@ -165,8 +169,19 @@ kr-power-data-scout  →  data-collector  →  source-reconciliation-analyst  �
 # Energy model
 kr-power-data-scout  →  data-collector  →  renewable-resource-scientist  →  optimization-modeller  →  math-reviewer  →  visualizer
 
+# Causal estimation (an effect, not an association)
+econometrician (estimand + design, stated first)  →  econometrician (timing table → estimator)
+                                                  →  econometrician (pre-trends & placebos BEFORE the headline)
+                                                  →  visualizer      (event-study figure with CIs)
+                                                  →  result-reporter  (as a range, assumption attached)
+
+# Plugin contract change
+plugin-framework-architect (classify additive/breaking → semver)  →  guard that fails on re-crossing
+                                                                  →  anchor + parity: default build must not move
+                                                                  →  tester (everything / lean / empty)  →  reviewer
+
 # MCP surface
-mcp-server-engineer  →  tester  →  reviewer   (+ app-distribution-engineer if it ships an installer)
+mcp-server-engineer  →  tester  →  reviewer   (+ app-distribution-engineer if it ships an installer or a .mcpb bundle)
 
 # LLM / agent application
 agent-app-engineer  →  mcp-server-engineer  →  web-app-engineer  →  tester  →  reviewer

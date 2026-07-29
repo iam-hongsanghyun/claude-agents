@@ -1,6 +1,6 @@
 # Agents — Role Reference
 
-All 34 agents are installed to `~/.claude/agents/` and available globally in every Claude Code session.
+All 36 agents are installed to `~/.claude/agents/` and available globally in every Claude Code session.
 
 - Relationships between agents (tiers, hand-offs, gates, routing boundaries) live in the machine-readable [`ontology.yaml`](./ontology.yaml), rendered to [`ONTOLOGY.md`](./ONTOLOGY.md) and to an interactive map, [`ontology.html`](./ontology.html) — self-contained and offline, with every agent's full role and routing boundaries. **Double-click [`../ontology.command`](../ontology.command)** to regenerate both and open the map.
 - Project-authored agents (created inside a single engagement by `research-director`, **not** installed globally) are registered in [`project/README.md`](./project/README.md).
@@ -27,14 +27,16 @@ All 34 agents are installed to `~/.claude/agents/` and available globally in eve
 | Audit data provenance, manifests, licence, reproducibility | `provenance-auditor` |
 | Two sources disagree — decide, and record the rule | `source-reconciliation-analyst` |
 | Design / debug an MCP server tool surface | `mcp-server-engineer` |
+| Design or defend a plugin contract; extract a module into its own package | `plugin-framework-architect` |
 | Build an app that embeds an LLM / Claude Agent SDK (RAG, guardrails, eval) | `agent-app-engineer` |
-| Double-clickable launchers for non-technical users | `app-distribution-engineer` |
+| Double-clickable launchers, or a `.mcpb` bundle, for non-technical users | `app-distribution-engineer` |
 | Find a Korean dataset; establish what a Korean metric measures | `kr-power-data-scout` |
 | Restructure code without changing behavior | `refactor-architect` |
 | Diagnose and fix a bug / crash / wrong output | `debugger` |
 | EDA, ML prototyping, schema alignment in code | `data-scientist` |
+| Estimate an effect — DiD, event study, panel FE, IV, RD, pass-through | `econometrician` |
 | LP/MILP/NLP optimization code (PyPSA, linopy, pyomo) | `optimization-modeller` |
-| Stock-and-flow / feedback simulation (Vensim-style) | `system-dynamics-modeller` |
+| Stock-and-flow / feedback simulation (Vensim-style); SFC / E-SFC accounting | `system-dynamics-modeller` |
 | Equilibrium / carbon-market / game-theoretic economics | `computational-economist` |
 | Geospatial code: CRS, spatial joins, raster/vector | `gis-analyst` |
 | Wind/solar resource, capacity factors from reanalysis | `renewable-resource-scientist` |
@@ -179,7 +181,18 @@ Reproduces bugs, isolates root cause (not symptoms), proposes minimal fix. Bisec
 
 ### `data-scientist`
 EDA, statistical analysis, ML prototyping, experiment analysis **in code**. Verifies input/output data alignment (schemas, dtypes, units, time zones) and enforces file-format best practice (parquet > CSV for numerical data).
-- **Not for**: internet research → `energy-finance-team` / `investment-asset-team`; charts → `visualizer`
+- **Not for**: internet research → `energy-finance-team` / `investment-asset-team`; charts → `visualizer`; a coefficient that will be reported as an effect → `econometrician`
+
+### `econometrician`
+Reduced-form causal inference in code: difference-in-differences, event studies, panel fixed effects, IV, regression discontinuity, pass-through and elasticities — with `statsmodels` / `linearmodels` / `pyfixest`. It owns the **estimand**: which comparison the estimator actually makes, which assumption licenses reading that number as an effect, and what would break the reading.
+
+Three things make it a distinct role rather than a corner of `data-scientist`:
+- **It is the pack's one licensed exception to "associations, not causes"** — and it earns the exception by never letting the claim travel without the design and the assumption attached, and by downgrading its own language to association where the design does not support a cause.
+- **Staggered adoption is a trap that returns a clean number.** With units treated at different dates, two-way fixed effects is a negatively-weighted average that can carry the wrong sign while every underlying effect is positive. Tabulating treatment timing *before* choosing an estimator, and reaching for Callaway–Sant'Anna / Sun–Abraham instead, is the headline error this agent exists to prevent.
+- **Inference is half the job** — clustering at the level treatment is assigned (not the level that gives smaller errors), few-cluster corrections with the cluster count reported, multiple-hypothesis adjustment, and pre-trend evidence produced *before* the headline estimate so it cannot be read charitably after the fact.
+
+Results are a range with the interval, never a point with stars.
+- **Not for**: structural equilibrium or mechanism modelling → `computational-economist`; simulation calibration → `system-dynamics-modeller`; EDA, descriptive statistics, ML prediction → `data-scientist`; solver numerics → `math-reviewer`; no-code research → `energy-finance-team`
 
 ### `optimization-modeller`
 LP / MILP / NLP model code using PyPSA, linopy, pyomo, cvxpy. Formulation correctness, infeasibility debugging, solver tuning, duality interpretation. Also PyPSA network construction, power flow (`n.pf()`) and calibration.
@@ -187,7 +200,9 @@ LP / MILP / NLP model code using PyPSA, linopy, pyomo, cvxpy. Formulation correc
 
 ### `system-dynamics-modeller`
 Stock-and-flow simulation with feedback: integration schemes and dt/stiffness, loop-dominance analysis, Vensim `.mdl` semantics (SMOOTH/DELAY/TREND), unit-strict rates, Monte-Carlo sweeps, calibration. Integrates coupled ODEs of accumulating stocks — not an optimizer.
-- **Not for**: LP/MILP/NLP → `optimization-modeller`; equilibria → `computational-economist`
+
+Also owns **stock-flow-consistent (SFC / ecological E-SFC) macro-financial models**, where accounting consistency plays the role unit consistency plays elsewhere: the balance-sheet and transaction-flow matrices must sum to zero along *both* dimensions, quadruple entry means a flow written without its counterparty is a bug that runs and drifts, and the redundant equation is **evaluated every step, never imposed** — imposing it makes the check vacuous. Money is endogenous (loans create deposits), and a central-bank tool acts inside the credit loop rather than as an exogenous injection.
+- **Not for**: LP/MILP/NLP → `optimization-modeller`; equilibria → `computational-economist`; a parameter that must carry a causal reading → `econometrician` (consume the estimate across its interval, not at its point)
 
 ### `computational-economist`
 Equilibrium & mechanism modelling: partial/general-equilibrium market clearing (tâtonnement, mixed-complementarity), Nash-Cournot/Stackelberg games, Hotelling dynamics, carbon-market design (MSR, CBAM, output-based allocation, collars), welfare/incidence. Equilibrium is a fixed point, not a single optimum.
@@ -217,13 +232,23 @@ For when two or more sources disagree about the same quantity and the build must
 The MCP server tool surface — often the *primary* interface to these projects, and sometimes one of several surfaces (MCP / CLI / HTTP) that must not drift. Owns tool granularity (a tool answers a question someone asks, never one tool per table), input schemas with descriptions and vocab-sourced enums, errors an LLM can recover from, **output token budgeting** with explicit truncation reporting, stdio correctness (stdout belongs to the protocol — a stray `print()` kills the client), client registration with an absolute interpreter path, and a parity test across surfaces.
 - **Not for**: generic Python → `developer`; browser UI → `frontend-developer`; the pipeline behind a tool → `data-collector`
 
+### `plugin-framework-architect`
+The contract between a host/kernel and the plugins that extend it — the recurring architecture in this portfolio (an umbrella framework composing independently-versioned Modules into shippable Tools; a manifest-declared plugin whose config schema renders into a host UI).
+
+The judgement it exists to force: **is this a plugin or just a module?** A module is imported — the host knows its name and they are one release unit. A plugin is *discovered* — the host has never heard of it and must still work when it is absent, incompatible, or crashes on load. A host with a hardcoded list of what it composes has a decorative extension point, and that list is the real architecture.
+
+What it owns: the SDK surface a plugin may depend on (and the extension bag that keeps additive changes additive), two-phase entry-point discovery that declares before it imports so an incompatible plugin can be *skipped with a reason* rather than crash the scan, contract-version negotiation against a stated semver bump policy, isolation guards checked **in both directions** (a stale allowlist row fails the build too, or the allowlist rots into permission), conflict detection when two plugins claim the same key, a composition anchor proving the default build did not move, keeping a lean install genuinely lean (verified by resolving it in a clean environment), and strangler extraction that inverts the dependency rather than carrying it.
+- **Not for**: the MCP tool surface → `mcp-server-engineer`; generic Python inside one plugin → `developer`; behavior-preserving restructure within a single package → `refactor-architect`; the browser UI hosting plugin panels → `frontend-developer`; launchers and bundles → `app-distribution-engineer`
+
 ### `agent-app-engineer`
 Applications that consume LLMs/agents at runtime: Claude Agent SDK orchestration and session lifecycle, a provider abstraction over the Claude API / `claude -p` CLI / local (Ollama), autonomy sliders with token & wall-clock budgets, PreToolUse approval gates and prompt-injection guards, worktree/venv/sandbox isolation, RAG and structured extraction, and an agent evaluation harness. The layer above the MCP tool surface.
 - **Not for**: the MCP tool surface → `mcp-server-engineer`; the chat UI → `frontend-developer` / `web-app-engineer`; generic Python → `developer`
 
 ### `app-distribution-engineer`
 The ten seconds between a double-click and a working app, for users who never open a terminal. `.command` / `.bat` / `.ps1` launchers, interpreter and venv bootstrap, first-run `.env` seeding that *names* what is missing instead of throwing, port selection and occupancy reporting, Gatekeeper and quarantine, readiness before opening the browser, log files, and one actionable sentence on every failure path. Keeps per-OS variants from drifting by sharing one launch implementation behind thin wrappers, and verifies with an empty-environment simulation rather than a developer shell.
-- **Not for**: application code → `developer` / `frontend-developer`; cloud/static web deploy (Vercel/Netlify) → `web-app-engineer`; MCP client registration → `mcp-server-engineer`; README prose → `doc-writer`
+
+Also owns **installable bundles** — an MCP `.mcpb` connector a user installs by double-click instead of hand-editing a client's JSON config: the manifest as install UX, configuration asked for through `user_config` (typed, with a default that works) rather than a hand-edited path, never a secret in the manifest, and bundle leanness *proved by inspecting the built archive* — shipping a `.venv` or a forgotten data directory is the default outcome. Installed from the artifact into a clean client profile, never from the working tree.
+- **Not for**: application code → `developer` / `frontend-developer`; cloud/static web deploy (Vercel/Netlify) → `web-app-engineer`; which tools an MCP server exposes and their schemas → `mcp-server-engineer`; README prose → `doc-writer`
 
 ### `visualizer`
 Produces charts, maps, and dashboards **in code**: matplotlib, seaborn, plotly, folium, pydeck. Catches legend-off-canvas, log-scale zeros, twin-axis confusion, color-blind-unsafe palettes. Publication-ready figures.
@@ -241,13 +266,17 @@ Also **builds the research report pages** that `research-director`'s Reporting p
 
 Tier 4 teams are structured by **function, not named personas**, and enforce a shared analytical-integrity discipline: understand before you build the deliverable; correlation not causation ("areas to explore," never "X caused Y"); absolute magnitudes (dollars) alongside percentages; explicit coverage/sample/unit caveats; provenance and change-logs; state AI use; and gate every figure `[verified]` vs `[compute]`.
 
+> The correlation-not-causation rule holds for everything these teams produce. The single exception in the pack is `econometrician`, which may make a causal claim — and only because it names the design, states the identifying assumption, shows the evidence that the assumption is not obviously violated, and keeps the assumption attached to the claim wherever it travels. If a Tier 4 report wants to say a policy *caused* something, that is a hand-off to `econometrician`, not a wording choice.
+
 ### `energy-finance-team`
 Functional research team (PLANiT Institute) — Research Director plus Energy Markets, Financial Markets, and Policy & Regulatory functions — delivering structured reports on energy markets, ESG, climate finance, and energy policy. Uses web search, Yahoo Finance, and DART.
 - **Not for**: optimization model code → `optimization-modeller`; data pipelines → `data-collector`; investment portfolio analysis → `investment-asset-team`
 
 ### `investment-asset-team`
-Functional investment-analysis team — Investment Lead plus Portfolio, Equity, Fixed-Income, and Risk functions — covering allocation, valuation, credit, and risk. Outputs structured, non-directive investment reports using Yahoo Finance, DART, and web research.
-- **Not for**: energy/policy research → `energy-finance-team`; model code or data pipelines → `developer` / `data-collector`
+Functional investment-analysis team — Investment Lead plus Portfolio, Equity, Fixed-Income, Risk, and **Ownership & Stewardship** functions — covering allocation, valuation, credit, risk, and whether a stated commitment shows up in the holdings. Outputs structured, non-directive investment reports using Yahoo Finance, DART, and web research.
+
+The Ownership & Stewardship function exists because the holding chain is where these numbers go wrong: beneficial vs registered vs custodial holder, nominee and depositary layers, funds vs their managers — a manager-level and a fund-level holding are different numbers and must never be summed. It also codes pledge strength onto an ordered scale (coverage, whether it binds subsidiaries, interim vs terminal date, escape clauses, whether it is reported against), reads the proxy-voting record rather than the stewardship report, and carries the as-of date and vintage on every figure, since holdings are disclosed with a lag and later revised.
+- **Not for**: energy/policy research → `energy-finance-team`; model code or data pipelines → `developer` / `data-collector`; estimating an effect from the resulting panel → `econometrician`
 
 ### `kr-power-data-scout`
 Finds Korean datasets and — the part that saves the project — establishes **what a Korean metric actually measures** before anyone builds on it: 설비용량 vs 발전용량, 발전기현황 vs 설비현황, 발전단 vs 송전단, SMP vs 정산단가, 잠정 vs 확정, 회계연도 vs 역년, 호기 granularity. Covers KPX/EPSIS, KEPCO statistics, 전기본 and the transmission plan, KOSIS, data.go.kr, OpenDART, KEEI, KMA, GIR/K-ETS, and the legal sources. Searches sibling repositories *before* the web, classifies access honestly (api / credential / browser / human / unavailable) **and at what data level**, and settles the 공공누리 (KOGL) licence at discovery rather than at publication. Returns a sourced dossier per dataset; never code.
@@ -326,10 +355,31 @@ kr-power-data-scout  (dossier: what it measures, level, access, licence)
 kr-power-data-scout  →  data-collector  →  renewable-resource-scientist  →  optimization-modeller  →  math-reviewer  →  visualizer
 ```
 
+### Causal estimation (an effect, not an association)
+```
+econometrician  (estimand + design + identifying assumption — stated BEFORE any fit)
+  →  econometrician   (treatment-timing table → estimator; TWFE only if adoption is common)
+  →  econometrician   (pre-trend & placebo evidence BEFORE the headline estimate)
+  →  visualizer       (event-study figure with confidence intervals)
+  →  econometrician   (the pre-specified robustness set, reported in full)
+  →  result-reporter  (as a range with the assumption attached; downgraded to an
+                       association where the design does not license a cause)
+```
+
+### Plugin contract change
+```
+plugin-framework-architect  (classify: additive / breaking / internal → the semver move)
+  →  plugin-framework-architect  (the change + a guard that fails when the boundary is re-crossed)
+  →  plugin-framework-architect  (composition anchor + result parity: the default build must not move)
+  →  tester    (guards on every invocation; CI matrix over everything / lean / empty)
+  →  reviewer
+  →  plugin-framework-architect  (template plugin + conformance kit, same commit)
+```
+
 ### MCP surface
 ```
 mcp-server-engineer  →  tester  →  reviewer
-  (+ app-distribution-engineer if it ships with an install script)
+  (+ app-distribution-engineer if it ships with an install script or a .mcpb bundle)
 ```
 
 ### LLM / agent application

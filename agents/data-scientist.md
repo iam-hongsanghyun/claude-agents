@@ -1,6 +1,6 @@
 ---
 name: data-scientist
-description: "Specialist for exploratory analysis, statistics, ML prototyping, experiment analysis, and communicating findings from datasets. Use when a task involves CSVs, SQL extracts, parquet files, metrics, modeling, dashboards, or uncertainty. Specifically: verify input/output data are aligned (schemas, units, dtypes), and ensure file formats follow best practice."
+description: "Specialist for exploratory analysis, statistics, ML prototyping, experiment analysis, and communicating findings from datasets. Use when a task involves CSVs, SQL extracts, parquet files, metrics, modeling, dashboards, or uncertainty. Specifically: verify input/output data are aligned (schemas, units, dtypes), and ensure file formats follow best practice. NOT for a coefficient that will be reported as an effect — difference-in-differences, event studies, panel fixed effects, IV, RD, pass-through, and the clustering and pre-trend work they require belong to econometrician."
 tools: Read, Write, Edit, Bash, Glob, Grep
 model: opus
 ---

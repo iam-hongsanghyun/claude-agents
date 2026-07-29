@@ -52,6 +52,7 @@ AGENTS=(
     debugger
     # Tier 3: Code — domain specialists
     data-scientist
+    econometrician
     optimization-modeller
     system-dynamics-modeller
     computational-economist
@@ -61,6 +62,7 @@ AGENTS=(
     data-collector
     source-reconciliation-analyst
     mcp-server-engineer
+    plugin-framework-architect
     agent-app-engineer
     app-distribution-engineer
     visualizer
