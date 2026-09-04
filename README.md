@@ -16,7 +16,7 @@ This repo is the source of truth. Local working copy at `~/.claude/templates/` i
 | [`.env.example`](./.env.example) | Environment variable template (incl. `RANDOM_SEED`). |
 | [`.gitignore`](./.gitignore) | Python + scientific-stack ignores (`data/`, `mlruns/`, `*.parquet`, etc.). |
 | [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) | uv-based CI (Python 3.11 + 3.12). |
-| [`agents/`](./agents/) | 36 user-level subagents auto-installed to `~/.claude/agents/` (see below). |
+| [`agents/`](./agents/) | 40 user-level subagents auto-installed to `~/.claude/agents/` (see below). |
 | [`scripts/claude-scaffold.sh`](./scripts/claude-scaffold.sh) | Bootstrap a new project from these templates. |
 | [`scripts/sync-to-local.sh`](./scripts/sync-to-local.sh) | Pull updates from this repo into `~/.claude/{templates,agents}/`. |
 | [`agents/ontology.yaml`](./agents/ontology.yaml) | The agent ontology — tiers, nodes, typed edges, workflows. Source of truth for agent relationships. |
@@ -28,7 +28,7 @@ This repo is the source of truth. Local working copy at `~/.claude/templates/` i
 
 ## Subagents (user-level — available in every Claude Code session)
 
-After running `scripts/install.sh` or `scripts/sync-to-local.sh`, all 36 agents are installed to `~/.claude/agents/` and available in every project — no per-project setup needed.
+After running `scripts/install.sh` or `scripts/sync-to-local.sh`, all 40 agents are installed to `~/.claude/agents/` and available in every project — no per-project setup needed.
 
 See [`agents/README.md`](./agents/README.md) for the full role reference and disambiguation guide.
 
@@ -97,6 +97,10 @@ For work bound by a **contract, proposal, or funding agreement**. All artefacts 
 | [`investment-asset-team`](./agents/investment-asset-team.md) | Portfolio, equity, bond/credit, risk analysis → structured investment report. Uses Yahoo Finance, DART, web research. |
 | [`kr-power-data-scout`](./agents/kr-power-data-scout.md) | Find a Korean dataset and establish **what the metric actually measures** (설비용량 vs 발전용량, 발전단 vs 송전단, SMP vs 정산단가, 잠정 vs 확정). KPX/EPSIS, KEPCO, 전기본, KOSIS, data.go.kr, OpenDART, KEEI, KMA, GIR. Returns a dossier with level, access class, and KOGL licence — never code. |
 | [`writing-support-team`](./agents/writing-support-team.md) | Research reports, white papers, policy briefs, memos, presentations, and **parallel KO/EN deliverables** with a maintained terminology glossary. **Not** code-facing docs (→ `doc-writer`). |
+| [`ir-disclosure-analyst`](./agents/ir-disclosure-analyst.md) | Company IR and operating releases **as data**: for every reported figure, its **basis** (retail vs wholesale vs production vs registrations), **boundary** (plant-side vs market-side, brands, JVs), **period** (calendar vs fiscal), **granularity** (country vs region; powertrain split or aggregate), **vintage** (restatements). Reporting-basis map across companies, nameplate/powertrain crosswalk, and a **build-vs-buy verdict** on licensed datasets (S&P Global Mobility, MarkLines, JATO, Dataforce; Clarksons) when no release carries the grain. Never code. **Not** financial IR (→ `investment-asset-team`), the fetcher (→ `data-collector`), Korean public statistics (→ `kr-power-data-scout`). |
+| [`transport-emissions-reviewer`](./agents/transport-emissions-reviewer.md) | **Read-only methodology gate before publication** for road-fleet and shipping emissions models: segment ratio vs the fleet benchmark, test-cycle→real-world (WLTP/EPA/NEDC, OBFCM, PHEV utility factors), the grid rule for BEVs where a target is already met, lifetime as a survival schedule, base-year indexing with the target's gas basket and boundary, WtW vs TtW and g↔t, adopted vs draft IMO text, and whether a promised P10/P50/P90 is propagated. Every choice ends **settled / disclose / wrong / client ruling**, with an owner. **Not** code vs equations (→ `math-reviewer`), trace (→ `provenance-auditor`), the reporting standard (→ `esg-disclosure-analyst`). |
+| [`esg-disclosure-analyst`](./agents/esg-disclosure-analyst.md) | Disclosure standards: GHG Protocol (boundary, Scope 2 dual reporting, Scope 3 **Category 11**), avoided emissions / Scope 4 (WBCSD), **PCAF**, **ISSB S1/S2** and adoptions (AASB S2, KSSB), TCFD/TPT, CSRD/ESRS, SBTi, CDP, taxonomy sustainable CapEx (eligible ≠ aligned; sum components). Positions a metric **inside / beside / against** the provisions ("additional to Cat. 11, never netting"), reads a disclosure for its eight attributes before a figure is used, and writes for standard-setters. Edition and date on every provision; no scoring, no legal advice. **Not** ESG performance research (→ `energy-finance-team`), pledge-vs-holdings (→ `investment-asset-team`), vehicle methodology (→ `transport-emissions-reviewer`). |
+| [`policy-analyst`](./agents/policy-analyst.md) | What the policy **says** and what the study **says to a policymaker**: the instrument register (statute → decree → 고시 → guidance; adopted vs draft; dates, cohorts, coverage, enforcement; version read, clause cited), the **target anatomy** (base year, form, gas basket and GWP vintage, sector boundary, LULUCF, conditionality, status, version) and the pathway rules it licenses, the policy use-cases the data honestly serves, and the **storyline shaped before anyone computes** — one message per figure as a comparison, boundary stated first, the caveat inside the presenter's sentence. Promoted from the Korea and Climate Arc policy-strategist prototypes. Exploratory not predictive; no causal claim (→ `econometrician`). **Not** disclosure standards (→ `esg-disclosure-analyst`), the finished document (→ `writing-support-team`), the client (→ `consultant`). |
 
 > Tier 4 teams are structured by **function, not named personas**, and share an analytical-integrity discipline: understand before you build the deliverable; correlation not causation ("areas to explore," never "X caused Y"); dollars alongside percentages; explicit coverage/sample/unit caveats; provenance and change-logs; state AI use; gate figures `[verified]` vs `[compute]`.
 
@@ -110,6 +114,10 @@ For work bound by a **contract, proposal, or funding agreement**. All artefacts 
 | Research / find information about energy, ESG, climate | `energy-finance-team` |
 | Research / find information about stocks, portfolio, bonds | `investment-asset-team` |
 | Write a report, memo, or presentation | `writing-support-team` |
+| What does this company's reported number measure; build or buy the market dataset | `ir-disclosure-analyst` |
+| Review a transport-emissions methodology before a figure publishes | `transport-emissions-reviewer` |
+| Position a metric against GHG Protocol / Scope 3 Cat. 11 / PCAF / ISSB; read a disclosure | `esg-disclosure-analyst` |
+| What a policy requires, a target's anatomy, the storyline for policymakers | `policy-analyst` |
 | Write README / CLI docs / tutorial | `doc-writer` |
 | Implement Python code | `developer` |
 | No-build vanilla-JS/d3 web app + thin backend + Vercel deploy | `web-app-engineer` |
@@ -186,6 +194,15 @@ mcp-server-engineer  →  tester  →  reviewer   (+ app-distribution-engineer i
 # LLM / agent application
 agent-app-engineer  →  mcp-server-engineer  →  web-app-engineer  →  tester  →  reviewer
 
+# Company operating disclosures → dataset
+ir-disclosure-analyst (five attributes per release; basis map; build-vs-buy)  →  data-collector  →  source-reconciliation-analyst  →  provenance-auditor  →  data-scientist
+
+# Transport-emissions methodology, before publication
+transport-emissions-reviewer (register: settled / disclose / wrong / ruling)  →  math-reviewer  →  esg-disclosure-analyst (Scope 3 Cat. 11 / avoided / PCAF positioning)  →  provenance-auditor  →  result-reporter
+
+# Policy storyline (message before computing)
+policy-analyst (instrument register + target anatomy + message)  →  data-scientist / econometrician  →  visualizer  →  result-reporter / writing-support-team  →  consultant
+
 # Before publishing a dataset or deliverable
 provenance-auditor  →  auditor
 ```
@@ -215,6 +232,10 @@ The complete relationship graph and every workflow are in [`agents/ONTOLOGY.md`]
 > Use the auditor subagent on this branch before I merge.
 > Use the energy-finance-team subagent to research Korean offshore wind policy.
 > Use the investment-asset-team subagent to analyze KEPCO's debt profile.
+> Use the ir-disclosure-analyst subagent to establish the reporting basis of the Hyundai and Kia IR workbooks and give a build-vs-buy verdict.
+> Use the transport-emissions-reviewer subagent on the trade-impact methodology before ST14 publication.
+> Use the esg-disclosure-analyst subagent to position TI against Scope 3 Category 11, avoided emissions and PCAF for the white paper.
+> Use the policy-analyst subagent to build the instrument register and target anatomy for the US, EU and Australian NDC scenarios.
 > Use the writing-support-team subagent to draft a policy brief on carbon markets.
 > Use the kr-power-data-scout subagent to establish what KPX 발전기현황 actually measures.
 > Use the source-reconciliation-analyst subagent on the fleet-vs-topology capacity conflict.

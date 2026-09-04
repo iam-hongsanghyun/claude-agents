@@ -76,6 +76,24 @@ Markdown sprawl is the failure mode: a pile of documents nobody reads because no
 - **No `_v2`, `_final`, `_old`, or dated duplicates.** A superseded document is deleted or archived, never left beside its replacement. No `ALL_CAPS_` filename prefixes.
 - Before creating a document, search for one that already covers it and extend that instead.
 
+## Agent team
+
+The user-level subagent pack lives in `~/github/claude-md/agents/` (role reference `agents/README.md`, relationships `agents/ontology.yaml`; `~/.claude/agents/` is a synced copy — never edit it directly). Roles are cut by **capability, not persona**, and every description ends with the `NOT for X — use Y` boundaries that route between them. Route by the question, not the noun:
+
+| Question | Agent |
+|---|---|
+| What does this company's reported number actually measure — retail vs wholesale vs production, plant-side vs market-side, region, fiscal year, powertrain split? Build the dataset or buy it? | `ir-disclosure-analyst` |
+| Does the emissions methodology hold — segment ratio, test-cycle to real-world, the grid rule where a target is already met, lifetime construction, WtW vs TtW, a promised P10/P50/P90? | `transport-emissions-reviewer` (read-only; before publication) |
+| Where does the metric sit against GHG Protocol / Scope 3 Category 11 / avoided emissions / PCAF / ISSB / AASB S2 / CSRD? What does this disclosure actually say? | `esg-disclosure-analyst` |
+| What does the policy actually require, what is the target's base year / gas basket / boundary, and what will a policymaker do with the finding? | `policy-analyst` (shapes the message before anyone computes) |
+| Is this coefficient an effect? | `econometrician` — the pack's only licensed causal claim, design and assumption attached |
+| Energy market, ESG performance, climate and company research → report | `energy-finance-team` |
+| Portfolio, valuation, credit, the ownership chain behind a holding | `investment-asset-team` |
+| A Korean public dataset and what its metric measures | `kr-power-data-scout` |
+| The finished report, brief or deck, in parallel KO/EN | `writing-support-team` |
+
+Three rules hold across the pack. **Analysts return dossiers and registers, never code** — the fetcher is `data-collector`'s, the analysis `data-scientist`'s. **Reviewers are read-only** (`math-reviewer`, `transport-emissions-reviewer`, `auditor`, `provenance-auditor`, `reviewer`): they report with file:line or row precision and never fix. **A specialist that never produces a figure hands its numbers to the stage owner** — it does not fill them in. When a project needs a role none of these covers, `research-director` writes it project-scoped and records which existing agents were considered and why each was inadequate.
+
 ## Contracted research engagements
 
 Where the work is bound by a contract, proposal, or funding agreement, the **contract and proposal are the truth source** and the governance set lives under `claude-docs/` — never scattered across the repo root:

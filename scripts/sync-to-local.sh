@@ -72,6 +72,10 @@ AGENTS=(
     investment-asset-team
     kr-power-data-scout
     writing-support-team
+    ir-disclosure-analyst
+    transport-emissions-reviewer
+    esg-disclosure-analyst
+    policy-analyst
 )
 for agent in "${AGENTS[@]}"; do
     if [ -f "$REPO_DIR/agents/$agent.md" ]; then

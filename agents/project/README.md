@@ -46,7 +46,7 @@ work, and keep this copy as the worked example.
 | [`system-value-analyst`](OEP-OffshoreWind/system-value-analyst.md) | opus | System LCOE, curtailment, LCoS, surplus absorption, negative pricing — metrics as differences between scenarios | local (folds into `optimization-modeller`'s broadened scope for now) |
 | [`dispatch-engineer`](OEP-OffshoreWind/dispatch-engineer.md) | opus | KPG193 network build, 2024 calibration gate, scenario encoding, ensembled run matrix (drives Ragnarok) | local (project network + calibration gate) |
 | [`data-acquisition-engineer`](OEP-OffshoreWind/data-acquisition-engineer.md) | sonnet | Project acquisition layer: ERA5/KMA/EPSIS/KPX/GEBCO/Overpass fetchers + credential broker + human-input inbox | local (specializes `data-collector` to SKR-0008 sources) |
-| [`korea-policy-strategist`](OEP-OffshoreWind/korea-policy-strategist.md) | opus | Storyline for MCEE/KPX/National-Assembly audiences; the three contract-required Korea insights | local (engagement narrative) |
+| [`korea-policy-strategist`](OEP-OffshoreWind/korea-policy-strategist.md) | opus | Storyline for MCEE/KPX/National-Assembly audiences; the three contract-required Korea insights | **generalized → [`policy-analyst`](../policy-analyst.md)** — keep this copy as the worked Korean example |
 | [`oep-contract-compliance`](OEP-OffshoreWind/oep-contract-compliance.md) | sonnet | Pre-submission PASS/BLOCK vs Schedules 1/2/3, payment gateways, KPIs | local (inherently per-contract) |
 | [`pipeline-orchestrator`](OEP-OffshoreWind/pipeline-orchestrator.md) | opus | "START HERE" project lead: reads pipeline state, dispatches to role agents, batches asks (holds the `Agent` tool) | local (project orchestrator; cf. `planner-and-qc-lead`) |
 | [`interim-reporter`](OEP-OffshoreWind/interim-reporter.md) | sonnet | Stage reports that lead with the ask and are honest about failure | local (specializes `report-manager`/`writing-support-team`) |
@@ -68,6 +68,15 @@ agent is earning its place:
   [`renewable-resource-scientist`](../renewable-resource-scientist.md).
 - **Embedded LLM/agent applications** — project_bifrost's Bifrost copilot and pathwise's in-app assistant
   drove the user-level [`agent-app-engineer`](../agent-app-engineer.md).
+- **Policy storyline and instrument register** — OEP `korea-policy-strategist`, the Climate Arc workshop
+  plugin's `policy-strategist` (the gap named after Workshop 1: nobody shaped the message before the analysts
+  computed), and the NDC anchors that decide the trade-impact scenarios. Third instance → now the user-level
+  [`policy-analyst`](../policy-analyst.md).
+- **Company operating disclosures as data** — the trade-impact roster first *rejected* an
+  `ir-disclosure-analyst` as covered by `data-collector` + `source-reconciliation-analyst`; every stall in that
+  project was then a reporting-basis mismatch in the IR workbooks (plant-side, regional, half-year, unsplit
+  powertrains). Promoted as the user-level [`ir-disclosure-analyst`](../ir-disclosure-analyst.md), with the
+  build-vs-buy verdict on licensed datasets as part of its output.
 - **Pipeline-lead / dispatch orchestration** (OEP `pipeline-orchestrator`, bifrost `leader`) — a recurring
   shape not yet promoted; `planner-and-qc-lead` covers the planning half. Watch for a third instance.
 

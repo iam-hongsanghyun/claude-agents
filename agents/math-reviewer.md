@@ -1,6 +1,6 @@
 ---
 name: math-reviewer
-description: "Use this agent to verify mathematical correctness whenever code changes algorithms, numerical solvers, discretization schemes, statistical estimators, or anything in src/<pkg>/core/. Cross-checks implementation against docstring Algorithm: sections, ALGORITHM.md, and cited references; checks discretization stability, sign conventions, indexing, tolerances, and edge cases. Read-only — does not modify code."
+description: "Use this agent to verify mathematical correctness whenever code changes algorithms, numerical solvers, discretization schemes, statistical estimators, or anything in src/<pkg>/core/. Cross-checks implementation against docstring Algorithm: sections, ALGORITHM.md, and cited references; checks discretization stability, sign conventions, indexing, tolerances, and edge cases. Read-only — does not modify code. NOT for domain methodology calls in a transport-emissions model (segment ratio, real-world factors, grid rule, lifetime) — use transport-emissions-reviewer."
 tools: Read, Grep, Glob, Bash
 model: opus
 ---

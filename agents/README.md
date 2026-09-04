@@ -1,6 +1,6 @@
 # Agents — Role Reference
 
-All 36 agents are installed to `~/.claude/agents/` and available globally in every Claude Code session.
+All 40 agents are installed to `~/.claude/agents/` and available globally in every Claude Code session.
 
 - Relationships between agents (tiers, hand-offs, gates, routing boundaries) live in the machine-readable [`ontology.yaml`](./ontology.yaml), rendered to [`ONTOLOGY.md`](./ONTOLOGY.md) and to an interactive map, [`ontology.html`](./ontology.html) — self-contained and offline, with every agent's full role and routing boundaries. **Double-click [`../ontology.command`](../ontology.command)** to regenerate both and open the map.
 - Project-authored agents (created inside a single engagement by `research-director`, **not** installed globally) are registered in [`project/README.md`](./project/README.md).
@@ -44,7 +44,11 @@ All 36 agents are installed to `~/.claude/agents/` and available globally in eve
 | Build a data-ingestion pipeline in code | `data-collector` |
 | Charts, maps, dashboards in code | `visualizer` |
 | README, CLI manual, tutorial, troubleshooting guide | `doc-writer` |
-| Energy market / ESG / climate / policy research → report | `energy-finance-team` |
+| Energy market / ESG performance / climate / company research → report | `energy-finance-team` |
+| What a company's reported number measures (retail vs wholesale vs production, plant- vs market-side, region, powertrain); build or buy the dataset | `ir-disclosure-analyst` |
+| Review a transport-emissions methodology before publication (segment ratio, real-world factors, grid rule, lifetime, WtW/TtW, P10/P50/P90) | `transport-emissions-reviewer` |
+| Position a metric against GHG Protocol / Scope 3 Cat. 11 / avoided emissions / PCAF / ISSB; read a disclosure for boundary and assurance | `esg-disclosure-analyst` |
+| What a policy requires; a target's anatomy; the storyline and framing for policymakers, before computing | `policy-analyst` |
 | Portfolio, equity, bond, risk analysis → report | `investment-asset-team` |
 | Research report, memo, white paper, presentation | `writing-support-team` |
 
@@ -157,7 +161,7 @@ APPROVE/REJECT a diff against the one task asked for. Rejects on icons/emojis, s
 
 ### `math-reviewer`
 Verifies that code matches the equations in `Algorithm:` docstring sections and `docs/ALGORITHM.md`. Checks discretization stability, sign conventions, indexing, tolerances, edge cases. **Read-only.**
-- **Not for**: fixing code → `developer`
+- **Not for**: fixing code → `developer`; whether the equations are the *right* ones for a transport-emissions model (segment ratio, real-world factors, grid rule, lifetime) → `transport-emissions-reviewer`
 
 ### `auditor`
 End-to-end pre-merge review: no hardcoded values, config externalized, `pint` at boundaries, doc/code alignment, project layout, tooling clean. **Read-only.**
@@ -181,7 +185,7 @@ Reproduces bugs, isolates root cause (not symptoms), proposes minimal fix. Bisec
 
 ### `data-scientist`
 EDA, statistical analysis, ML prototyping, experiment analysis **in code**. Verifies input/output data alignment (schemas, dtypes, units, time zones) and enforces file-format best practice (parquet > CSV for numerical data).
-- **Not for**: internet research → `energy-finance-team` / `investment-asset-team`; charts → `visualizer`; a coefficient that will be reported as an effect → `econometrician`
+- **Not for**: internet research → `energy-finance-team` / `investment-asset-team`; charts → `visualizer`; a coefficient that will be reported as an effect → `econometrician`; a fleet-emissions result about to publish → `transport-emissions-reviewer` first
 
 ### `econometrician`
 Reduced-form causal inference in code: difference-in-differences, event studies, panel fixed effects, IV, regression discontinuity, pass-through and elasticities — with `statsmodels` / `linearmodels` / `pyfixest`. It owns the **estimand**: which comparison the estimator actually makes, which assumption licenses reading that number as an effect, and what would break the reading.
@@ -192,7 +196,7 @@ Three things make it a distinct role rather than a corner of `data-scientist`:
 - **Inference is half the job** — clustering at the level treatment is assigned (not the level that gives smaller errors), few-cluster corrections with the cluster count reported, multiple-hypothesis adjustment, and pre-trend evidence produced *before* the headline estimate so it cannot be read charitably after the fact.
 
 Results are a range with the interval, never a point with stars.
-- **Not for**: structural equilibrium or mechanism modelling → `computational-economist`; simulation calibration → `system-dynamics-modeller`; EDA, descriptive statistics, ML prediction → `data-scientist`; solver numerics → `math-reviewer`; no-code research → `energy-finance-team`
+- **Not for**: structural equilibrium or mechanism modelling → `computational-economist`; simulation calibration → `system-dynamics-modeller`; EDA, descriptive statistics, ML prediction → `data-scientist`; solver numerics → `math-reviewer`; no-code research → `energy-finance-team`; what the policy requires and how to frame it → `policy-analyst`
 
 ### `optimization-modeller`
 LP / MILP / NLP model code using PyPSA, linopy, pyomo, cvxpy. Formulation correctness, infeasibility debugging, solver tuning, duality interpretation. Also PyPSA network construction, power flow (`n.pf()`) and calibration.
@@ -218,15 +222,15 @@ Wind/solar resource from reanalysis and observations: ERA5/atlite cutouts, hub-h
 
 ### `climate-risk-modeller`
 Physical & transition climate-risk in code: CLIMADA hazard × exposure × vulnerability → impact, expected annual impact, return-period loss curves, Monte-Carlo uncertainty, adaptation cost-benefit; NGFS transition-risk carbon-cost passthrough. Owns the heavy GPL CLIMADA/GDAL stack as an isolated conda subprocess behind a JSON contract.
-- **Not for**: CRS/raster mechanics → pair with `gis-analyst`; no-code climate research → `energy-finance-team`; the map UI → `web-app-engineer`
+- **Not for**: CRS/raster mechanics → pair with `gis-analyst`; no-code climate research → `energy-finance-team`; the map UI → `web-app-engineer`; reviewing a transport-emissions methodology before publication → `transport-emissions-reviewer`
 
 ### `data-collector`
 Builds **reusable, tested Python pipelines** for web scraping and API ingestion (OpenDART, Yahoo Finance, KOSIS, news APIs, government open data). Polite scraping, retry/backoff, pydantic/pandera schema validation, idempotent storage.
-- **Not for**: one-off research lookups → `energy-finance-team` / `investment-asset-team`; analysing already-collected data → `data-scientist`
+- **Not for**: one-off research lookups → `energy-finance-team` / `investment-asset-team`; analysing already-collected data → `data-scientist`; what a company's reported figure measures before it is ingested → `ir-disclosure-analyst`
 
 ### `source-reconciliation-analyst`
 For when two or more sources disagree about the same quantity and the build must pick a value. One rule: **never silently pick** — no `coalesce` across sources, no averaging the difference away, no "the newer one". Proves the join first (row and key counts, unmatched both directions), classifies the disagreement (missing / conflicting / unit / granularity / vintage / naming / definitional), quantifies the distribution rather than the count, presents representative cases for a decision, then **records the decision as a reusable rule** with an id so the next rebuild does not re-ask. Preserves the rejected value in a parallel column, implements the rule declaratively in config, and gates it with a tolerance test.
-- **Not for**: acquiring the sources → `data-collector` / `kr-power-data-scout`; analysing the merged result → `data-scientist`
+- **Not for**: acquiring the sources → `data-collector` / `kr-power-data-scout` / `ir-disclosure-analyst`; analysing the merged result → `data-scientist`
 
 ### `mcp-server-engineer`
 The MCP server tool surface — often the *primary* interface to these projects, and sometimes one of several surfaces (MCP / CLI / HTTP) that must not drift. Owns tool granularity (a tool answers a question someone asks, never one tool per table), input schemas with descriptions and vocab-sourced enums, errors an LLM can recover from, **output token budgeting** with explicit truncation reporting, stdio correctness (stdout belongs to the protocol — a stray `print()` kills the client), client registration with an absolute interpreter path, and a parity test across surfaces.
@@ -270,21 +274,39 @@ Tier 4 teams are structured by **function, not named personas**, and enforce a s
 
 ### `energy-finance-team`
 Functional research team (PLANiT Institute) — Research Director plus Energy Markets, Financial Markets, and Policy & Regulatory functions — delivering structured reports on energy markets, ESG, climate finance, and energy policy. Uses web search, Yahoo Finance, and DART.
-- **Not for**: optimization model code → `optimization-modeller`; data pipelines → `data-collector`; investment portfolio analysis → `investment-asset-team`
+- **Not for**: optimization model code → `optimization-modeller`; data pipelines → `data-collector`; investment portfolio analysis → `investment-asset-team`; what a specific instrument requires, a target's anatomy, the policy storyline → `policy-analyst`; disclosure-standard conformance → `esg-disclosure-analyst`; a company's operating releases as data → `ir-disclosure-analyst`
 
 ### `investment-asset-team`
 Functional investment-analysis team — Investment Lead plus Portfolio, Equity, Fixed-Income, Risk, and **Ownership & Stewardship** functions — covering allocation, valuation, credit, risk, and whether a stated commitment shows up in the holdings. Outputs structured, non-directive investment reports using Yahoo Finance, DART, and web research.
 
 The Ownership & Stewardship function exists because the holding chain is where these numbers go wrong: beneficial vs registered vs custodial holder, nominee and depositary layers, funds vs their managers — a manager-level and a fund-level holding are different numbers and must never be summed. It also codes pledge strength onto an ordered scale (coverage, whether it binds subsidiaries, interim vs terminal date, escape clauses, whether it is reported against), reads the proxy-voting record rather than the stewardship report, and carries the as-of date and vintage on every figure, since holdings are disclosed with a lag and later revised.
-- **Not for**: energy/policy research → `energy-finance-team`; model code or data pipelines → `developer` / `data-collector`; estimating an effect from the resulting panel → `econometrician`
+- **Not for**: energy/policy research → `energy-finance-team`; model code or data pipelines → `developer` / `data-collector`; estimating an effect from the resulting panel → `econometrician`; how a disclosure conforms to GHG Protocol / PCAF / ISSB → `esg-disclosure-analyst`; operating (non-financial) releases as data → `ir-disclosure-analyst`
 
 ### `kr-power-data-scout`
 Finds Korean datasets and — the part that saves the project — establishes **what a Korean metric actually measures** before anyone builds on it: 설비용량 vs 발전용량, 발전기현황 vs 설비현황, 발전단 vs 송전단, SMP vs 정산단가, 잠정 vs 확정, 회계연도 vs 역년, 호기 granularity. Covers KPX/EPSIS, KEPCO statistics, 전기본 and the transmission plan, KOSIS, data.go.kr, OpenDART, KEEI, KMA, GIR/K-ETS, and the legal sources. Searches sibling repositories *before* the web, classifies access honestly (api / credential / browser / human / unavailable) **and at what data level**, and settles the 공공누리 (KOGL) licence at discovery rather than at publication. Returns a sourced dossier per dataset; never code.
-- **Not for**: building the fetcher → `data-collector`; analysing the acquired data → `data-scientist`; policy or market commentary → `energy-finance-team`
+- **Not for**: building the fetcher → `data-collector`; analysing the acquired data → `data-scientist`; policy or market commentary → `energy-finance-team`; company IR and operating releases → `ir-disclosure-analyst`
 
 ### `writing-support-team`
 Functional writing team — Lead Editor plus Research Writer, Technical Writer, Copy Editor, and a **Bilingual Editor (KO/EN)** — for research reports, white papers, policy briefs, business memos, executive summaries, presentations, and methodology descriptions for non-code audiences. Bilingual deliverables are parallel work with a maintained terminology glossary, never a translation pass at the end.
-- **Not for**: code-facing docs (README, CLI, tutorials) → `doc-writer`; domain energy/investment analysis → those teams
+- **Not for**: code-facing docs (README, CLI, tutorials) → `doc-writer`; domain energy/investment analysis → those teams; the policy storyline and framing rules → `policy-analyst` first; standard-mapped text against GHG Protocol / ISSB / PCAF → `esg-disclosure-analyst`
+
+### `ir-disclosure-analyst`
+Reads a company's investor-relations and operating disclosures **as data** — monthly and quarterly sales and production releases, IR workbooks and decks, annual and sustainability reports, OpenDART / EDGAR filings — and establishes **five attributes** for every reported figure before it enters a model: **basis** (retail vs wholesale vs production vs deliveries vs registrations), **boundary** (plant-side vs market-side, brands, JVs, consolidated or parent), **period** (calendar vs fiscal, cumulative vs period, preliminary vs final), **granularity** (country vs region, model vs brand, powertrain split or an "eco-friendly" aggregate), **vintage** (restatements, retroactive region reclassification). Builds the nameplate and powertrain crosswalk with the unmatched counted. "IR" here means operating releases, not valuation.
+
+It exists because the automotive trade-impact study stalled on exactly this — one exporter's workbook plant-side, another's regional and half-year, neither split by powertrain — and the roster had rejected the role as covered by `data-collector` + `source-reconciliation-analyst`. Its distinctive output is the **build-vs-buy verdict**: when no release publishes the needed grain on the needed basis, it names the licensed dataset that does (S&P Global Mobility, MarkLines, JATO, Dataforce; Clarksons for shipping), its licence class and lead time, and the claims that fall out of scope without it. Returns dossiers; never code.
+- **Not for**: financial IR (valuation, guidance, capital structure) → `investment-asset-team`; building the fetcher → `data-collector`; two sources that disagree → `source-reconciliation-analyst`; Korean public statistics → `kr-power-data-scout`; standard conformance of a climate disclosure → `esg-disclosure-analyst`
+
+### `transport-emissions-reviewer`
+The specialist brought in **before publication, not full time**: an ICCT / EEA / IMO-type reviewer of the *methodology* of a road-fleet or shipping emissions model, where `math-reviewer` checks the code against its equations and this agent checks that the equations are the right ones. Every methodological choice — documented or found in a default argument — ends in one of four states: **settled with source**, **defensible but must be disclosed**, **wrong**, or **undecidable without a client ruling** — and every row has an owner. Its standing brief: the **segment ratio** between a company's mix and the fleet benchmark (1.0 is an assumption that decides signs, not a neutral default); test-cycle to real-world correction (WLTP / EPA / NEDC / CLTC gaps, OBFCM, **PHEV utility factors** — the largest single error in most models); the **grid-intensity rule** for BEVs, including what happens where a target is already met; lifetime as a **survival schedule** rather than a mean age, distance by age, cohort-year capping; indexing to a base year with the target's own gas basket and sector boundary; **WtW vs TtW**, g↔t, GWP vintage and adopted-vs-draft text for shipping; and whether a promised **P10/P50/P90** is propagated or is three scenarios wearing percentile labels. **Read-only** — reports with file:line or cell precision, and every settled call becomes a numbered assumption in the register, never a literal in code.
+- **Not for**: code vs its equations → `math-reviewer`; whether figures trace → `provenance-auditor`; the reporting standard the result sits under → `esg-disclosure-analyst`; the sales or fleet data itself → `ir-disclosure-analyst`
+
+### `esg-disclosure-analyst`
+Corporate climate and sustainability **disclosure standards**: GHG Protocol (boundary and consolidation approach, Scope 2 location- vs market-based, the Scope 3 categories and **Category 11** use-of-sold-products assumptions), avoided-emissions / "Scope 4" guidance (WBCSD — separate from the inventory, with the counterfactual type deciding which tests apply), **PCAF** financed and facilitated emissions (attribution factor, data-quality score), **ISSB IFRS S1/S2** and its jurisdictional adoptions (AASB S2, KSSB, UK, Japan SSBJ), TCFD and the Transition Plan Taskforce, **CSRD/ESRS**, SBTi validation status, CDP, and **taxonomy-based sustainable CapEx / revenue** (eligible vs aligned; sum the components, never lift a headline share). Three jobs: **position a methodology** against the provisions it touches (inside, beside, against, or silent — and "additional to Scope 3 Category 11, never netting" checked in every table); **read a disclosure** for its eight attributes (boundary, Scope 2 method, Scope 3 coverage, base year and restatements, targets, transition plan, assurance scope, sustainable CapEx components) before any figure from it is used; and **write for standard-setters** — the provision, the gap, the proposal, the evidence, the cost. Earns its place at the white-paper and peer-review stage, after the case study is defensible. States the edition and date of every provision; gives no legal advice; does no ESG scoring.
+- **Not for**: ESG performance research or scoring across companies → `energy-finance-team`; whether a pledge shows up in the holdings → `investment-asset-team`; vehicle or vessel emissions methodology → `transport-emissions-reviewer`; policy instruments and targets → `policy-analyst`; operating releases as data → `ir-disclosure-analyst`
+
+### `policy-analyst`
+Owns **what the policy actually says** and **what the study says to a policymaker**, as distinct from what it computes — the role invented three times before it was written down (OEP's `korea-policy-strategist`, the Climate Arc workshop's `policy-strategist`, the trade-impact NDC anchors). Two artefacts. The **instrument register**: statute → decree → notice (the 고시 carries the number the law gestures at) → guidance; adopted vs draft vs proposed vs repealed; effective and compliance dates and phase-in cohorts; coverage; mechanism; enforcement and flexibility; version read — primary text cited to the clause, with anything recalled treated as a candidate to verify. The **target anatomy**: base year, form (absolute / intensity / BAU-relative), gas basket and GWP vintage, sector boundary, LULUCF, conditionality, legal status, version — and from it the pathway rules the analyst may use (time-matched, pro-rata as a *named* assumption, no target in force = explicit exclusion, target already met = a recorded rule). Then the **storyline, shaped before anyone computes**: the decision the audience faces, one message per figure as a comparison, the counterfactual structure led with, the boundary stated before someone in the room states it, two tiers where the audience has an existing frame, the caveat inside the sentence the presenter will say, and the change the finding is meant to produce. Decides which **policy use-cases** the data honestly serves (monitoring, targeting — rarely evaluation, never causation). Exploratory not predictive; comparison not advocacy; no causal claim about a policy — that sentence is `econometrician`'s.
+- **Not for**: estimating a policy's effect → `econometrician`; disclosure standards → `esg-disclosure-analyst`; energy-market and company research → `energy-finance-team`; the finished brief, deck or report → `writing-support-team` / `result-reporter`; client communication → `consultant`
 
 ---
 
@@ -333,7 +355,8 @@ refactor-architect  →  auditor
 
 ### Research → report
 ```
-energy-finance-team  or  investment-asset-team
+policy-analyst / esg-disclosure-analyst   (framing rules and standard positioning first, where the report faces policymakers or standard-setters)
+→  energy-finance-team  or  investment-asset-team
 →  writing-support-team   (if formal document needed)
 ```
 
@@ -385,6 +408,34 @@ mcp-server-engineer  →  tester  →  reviewer
 ### LLM / agent application
 ```
 agent-app-engineer  →  mcp-server-engineer  →  web-app-engineer  →  tester  →  reviewer
+```
+
+### Company operating disclosures → dataset
+```
+ir-disclosure-analyst  (five attributes per release: basis, boundary, period, granularity, vintage;
+                        reporting-basis map across companies; build-vs-buy verdict on a licensed dataset)
+  →  data-collector                 (the fetcher, or the pinned hand-gathered file under the project's source policy)
+  →  source-reconciliation-analyst (where two releases disagree on the same quantity)
+  →  provenance-auditor             (terms of use and republication grain)
+  →  data-scientist
+```
+
+### Transport-emissions methodology, before publication
+```
+transport-emissions-reviewer  (methodology register — every choice settled / disclose / wrong / client ruling, with an owner)
+  →  math-reviewer            (code vs its equations)
+  →  esg-disclosure-analyst   (where the metric sits against GHG Protocol / Scope 3 Cat. 11 / avoided emissions / PCAF)
+  →  provenance-auditor       (every figure traces)
+  →  result-reporter          (the disclosures travel beside the headline figure)
+```
+
+### Policy storyline (message before computing)
+```
+policy-analyst  (instrument register + target anatomy + use-case fit + the message — BEFORE anyone computes)
+  →  data-scientist / econometrician  (compute to the message; a causal sentence only via econometrician)
+  →  visualizer                       (one figure per message)
+  →  result-reporter / writing-support-team  (the deck or brief, with the sentences the presenter may say)
+  →  consultant                       (to the client)
 ```
 
 ### Before publishing a dataset or deliverable

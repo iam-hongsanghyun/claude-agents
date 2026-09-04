@@ -1,6 +1,6 @@
 ---
 name: kr-power-data-scout
-description: "Use this agent to find a Korean dataset and — more importantly — establish what a Korean metric actually measures before anyone builds on it. Covers KPX/EPSIS, KEPCO statistics, the Basic Plan (전기본) and transmission plan, KOSIS, data.go.kr, OpenDART, KEEI, KMA, K-ETS and GIR, and the legal sources. Returns a sourced dossier per dataset: what it measures, at what level, coverage, access route, licence, revision behaviour, and the traps — never code. NOT for building the fetcher — hand the dossier to data-collector. NOT for analysing the data once acquired — use data-scientist. NOT for Korean energy policy or market commentary — use energy-finance-team."
+description: "Use this agent to find a Korean dataset and — more importantly — establish what a Korean metric actually measures before anyone builds on it. Covers KPX/EPSIS, KEPCO statistics, the Basic Plan (전기본) and transmission plan, KOSIS, data.go.kr, OpenDART, KEEI, KMA, K-ETS and GIR, and the legal sources. Returns a sourced dossier per dataset: what it measures, at what level, coverage, access route, licence, revision behaviour, and the traps — never code. NOT for building the fetcher — hand the dossier to data-collector. NOT for analysing the data once acquired — use data-scientist. NOT for Korean energy policy or market commentary — use energy-finance-team. NOT for company IR and operating releases — use ir-disclosure-analyst."
 tools: WebSearch, WebFetch, Read, Grep, Glob, Bash
 model: opus
 ---

@@ -4,7 +4,7 @@
 
 > For the **interactive version** — a clickable map with each agent's full role and routing boundaries — open [`ontology.html`](ontology.html) (self-contained, offline, opens by double-click; regenerate with `uv run --no-project --with pyyaml python scripts/render_ontology_html.py`).
 
-36 user-level agents (installed to `~/.claude/agents/`) and 12 project-scoped agents (mirrored under [`project/`](project/README.md), not installed globally). Nodes are agents; edges are typed relationships. The full role reference is [`README.md`](README.md); this document is the machine-readable relationship graph.
+40 user-level agents (installed to `~/.claude/agents/`) and 12 project-scoped agents (mirrored under [`project/`](project/README.md), not installed globally). Nodes are agents; edges are typed relationships. The full role reference is [`README.md`](README.md); this document is the machine-readable relationship graph.
 
 ## Tiers
 
@@ -79,6 +79,10 @@ flowchart LR
     investment_asset_team["investment-asset-team"]
     kr_power_data_scout["kr-power-data-scout"]
     writing_support_team["writing-support-team"]
+    ir_disclosure_analyst["ir-disclosure-analyst"]
+    transport_emissions_reviewer["transport-emissions-reviewer"]
+    esg_disclosure_analyst["esg-disclosure-analyst"]
+    policy_analyst["policy-analyst"]
   end
   research_director --> log_reporter
   research_director --> result_reporter
@@ -115,6 +119,16 @@ flowchart LR
   provenance_auditor --> auditor
   energy_finance_team --> writing_support_team
   investment_asset_team --> writing_support_team
+  ir_disclosure_analyst --> data_collector
+  ir_disclosure_analyst --> source_reconciliation_analyst
+  ir_disclosure_analyst --> provenance_auditor
+  transport_emissions_reviewer ==>|gate| result_reporter
+  climate_risk_modeller --> transport_emissions_reviewer
+  data_scientist --> transport_emissions_reviewer
+  esg_disclosure_analyst --> writing_support_team
+  policy_analyst --> result_reporter
+  policy_analyst --> writing_support_team
+  policy_analyst --> consultant
 ```
 
 ## Project layer
@@ -142,9 +156,9 @@ flowchart LR
     leader["leader"]
   end
   data_collector["data-collector"]
-  energy_finance_team["energy-finance-team"]
   optimization_modeller["optimization-modeller"]
   planner_and_qc_lead["planner-and-qc-lead"]
+  policy_analyst["policy-analyst"]
   provenance_auditor["provenance-auditor"]
   renewable_resource_scientist["renewable-resource-scientist"]
   report_manager["report-manager"]
@@ -166,7 +180,7 @@ flowchart LR
   system_value_analyst -.->|specializes| optimization_modeller
   data_analyst -.->|specializes| provenance_auditor
   interim_reporter -.->|specializes| report_manager
-  korea_policy_strategist -.->|specializes| energy_finance_team
+  korea_policy_strategist ==>|generalized| policy_analyst
   pipeline_orchestrator -.->|specializes| planner_and_qc_lead
   leader -.->|specializes| planner_and_qc_lead
 ```
@@ -210,8 +224,12 @@ flowchart LR
 | [`system-dynamics-modeller`](system-dynamics-modeller.md) | 3 | opus | read-write | Stock-and-flow feedback simulation — integration, loop dominance, Vensim/.mdl |
 | [`visualizer`](visualizer.md) | 3 | opus | read-write | Charts/maps/dashboards in code — matplotlib/seaborn/plotly/folium/pydeck; builds the research report pages and their index |
 | [`energy-finance-team`](energy-finance-team.md) | 4 | opus | research | Energy/ESG/climate/policy research → structured report |
+| [`esg-disclosure-analyst`](esg-disclosure-analyst.md) | 4 | opus | research | Disclosure standards — GHG Protocol / Scope 3 Cat. 11, avoided emissions, PCAF, ISSB & adoptions, CSRD, SBTi, taxonomies; positions a metric, reads a disclosure, writes for standard-setters |
 | [`investment-asset-team`](investment-asset-team.md) | 4 | opus | research | Portfolio/equity/bond/credit/risk research → structured investment report |
+| [`ir-disclosure-analyst`](ir-disclosure-analyst.md) | 4 | opus | research | Company IR / operating releases as data — basis, boundary, period, granularity, vintage per release; reporting-basis map; build-vs-buy verdict on licensed datasets |
 | [`kr-power-data-scout`](kr-power-data-scout.md) | 4 | opus | research | Korean datasets + what a metric actually measures (설비 vs 발전, 발전단 vs 송전단, SMP vs 정산단가) |
+| [`policy-analyst`](policy-analyst.md) | 4 | opus | research | Instrument register, target anatomy, policy use-case fit, audience and storyline — shaped before computing; comparison, never cause |
+| [`transport-emissions-reviewer`](transport-emissions-reviewer.md) | 4 | opus | read-only | Methodology gate for road-fleet and shipping emissions models — segment ratio, real-world factors, grid rule, lifetime, WtW/TtW, P10/P50/P90; read-only, before publication |
 | [`writing-support-team`](writing-support-team.md) | 4 | opus | research | Reports, white papers, briefs, memos, presentations; parallel KO/EN with a terminology glossary |
 
 ### Project-scoped
@@ -264,10 +282,20 @@ flowchart LR
 - `provenance-auditor` &rarr; `auditor`
 - `energy-finance-team` &rarr; `writing-support-team` — formal document
 - `investment-asset-team` &rarr; `writing-support-team` — formal document
+- `ir-disclosure-analyst` &rarr; `data-collector` — dossier + reporting-basis map → build the fetcher
+- `ir-disclosure-analyst` &rarr; `source-reconciliation-analyst` — two releases disagree on the same quantity
+- `ir-disclosure-analyst` &rarr; `provenance-auditor` — terms of use and republication grain
+- `climate-risk-modeller` &rarr; `transport-emissions-reviewer` — methodology review before publication
+- `data-scientist` &rarr; `transport-emissions-reviewer` — a fleet-emissions result before it publishes
+- `esg-disclosure-analyst` &rarr; `writing-support-team` — standard-mapped text into the white paper or brief
+- `policy-analyst` &rarr; `result-reporter` — the storyline and framing rules, before the deck
+- `policy-analyst` &rarr; `writing-support-team` — message, register and framing rules for the brief
+- `policy-analyst` &rarr; `consultant` — the storyline reaches the client through consultant
 
 ### `gates`
 
 - `tester` &rarr; `reviewer`
+- `transport-emissions-reviewer` &rarr; `result-reporter` — no transport-emissions figure publishes before the methodology register is Pass
 
 ### `delegates_to`
 
@@ -327,6 +355,32 @@ flowchart LR
 - `energy-finance-team` &rarr; `investment-asset-team` — portfolio analysis
 - `doc-writer` &rarr; `writing-support-team` — reports/memos/presentations
 - `writing-support-team` &rarr; `doc-writer` — code-facing docs
+- `ir-disclosure-analyst` &rarr; `investment-asset-team` — financial IR — valuation, guidance, capital structure
+- `ir-disclosure-analyst` &rarr; `kr-power-data-scout` — Korean public statistics
+- `ir-disclosure-analyst` &rarr; `esg-disclosure-analyst` — how a climate disclosure conforms to a standard
+- `data-collector` &rarr; `ir-disclosure-analyst` — what a company's reported figure measures
+- `kr-power-data-scout` &rarr; `ir-disclosure-analyst` — company IR and operating releases
+- `source-reconciliation-analyst` &rarr; `ir-disclosure-analyst` — acquiring company releases
+- `investment-asset-team` &rarr; `ir-disclosure-analyst` — operating (non-financial) releases as data
+- `transport-emissions-reviewer` &rarr; `math-reviewer` — code vs its equations
+- `transport-emissions-reviewer` &rarr; `provenance-auditor` — whether figures trace
+- `transport-emissions-reviewer` &rarr; `esg-disclosure-analyst` — the reporting standard the result sits under
+- `transport-emissions-reviewer` &rarr; `ir-disclosure-analyst` — the sales / fleet data itself
+- `math-reviewer` &rarr; `transport-emissions-reviewer` — domain methodology calls in a transport model
+- `esg-disclosure-analyst` &rarr; `energy-finance-team` — ESG performance research across companies
+- `esg-disclosure-analyst` &rarr; `investment-asset-team` — whether a pledge shows up in the holdings
+- `esg-disclosure-analyst` &rarr; `transport-emissions-reviewer` — vehicle / vessel emissions methodology
+- `esg-disclosure-analyst` &rarr; `policy-analyst` — instruments and targets
+- `esg-disclosure-analyst` &rarr; `ir-disclosure-analyst` — operating releases as data
+- `energy-finance-team` &rarr; `esg-disclosure-analyst` — disclosure-standard conformance
+- `investment-asset-team` &rarr; `esg-disclosure-analyst` — how a disclosure conforms to GHG Protocol / PCAF / ISSB
+- `policy-analyst` &rarr; `econometrician` — any sentence that says a policy had an effect
+- `policy-analyst` &rarr; `esg-disclosure-analyst` — what a disclosure regime requires a company to publish
+- `policy-analyst` &rarr; `energy-finance-team` — market and company research
+- `energy-finance-team` &rarr; `policy-analyst` — instrument register, target anatomy, storyline
+- `econometrician` &rarr; `policy-analyst` — what the policy requires and how to frame it
+- `writing-support-team` &rarr; `policy-analyst` — the storyline comes first
+- `consultant` &rarr; `policy-analyst` — the policy storyline
 
 ### `pairs_with`
 
@@ -357,13 +411,13 @@ flowchart LR
 - `system-value-analyst` &rarr; `optimization-modeller`
 - `data-analyst` &rarr; `provenance-auditor`
 - `interim-reporter` &rarr; `report-manager`
-- `korea-policy-strategist` &rarr; `energy-finance-team`
 - `pipeline-orchestrator` &rarr; `planner-and-qc-lead`
 - `leader` &rarr; `planner-and-qc-lead`
 
 ### `generalized_as`
 
 - `resource-scientist` &rarr; `renewable-resource-scientist`
+- `korea-policy-strategist` &rarr; `policy-analyst`
 
 ## Workflows
 
@@ -426,8 +480,33 @@ Named sequences the edges above compose into.
 
 ### research-to-report
 
+1. policy-analyst / esg-disclosure-analyst (framing and standards first)
 1. energy-finance-team / investment-asset-team
 1. writing-support-team
+
+### company-disclosure-data
+
+1. ir-disclosure-analyst (five attributes per release; reporting-basis map across companies; build-vs-buy verdict)
+1. data-collector (the fetcher, or the pinned hand-gathered file under the project's source policy)
+1. source-reconciliation-analyst (where two releases disagree)
+1. provenance-auditor (terms of use and republication grain)
+1. data-scientist
+
+### methodology-before-publication
+
+1. transport-emissions-reviewer (methodology register — every choice settled, disclosed, wrong, or a client ruling)
+1. math-reviewer (code vs equations)
+1. esg-disclosure-analyst (where the metric sits against GHG Protocol / Scope 3 Cat. 11 / avoided emissions / PCAF)
+1. provenance-auditor (every figure traces)
+1. result-reporter (the disclosures travel beside the headline figure)
+
+### policy-storyline
+
+1. policy-analyst (instrument register + target anatomy + use-case fit + the message, BEFORE computing)
+1. data-scientist / econometrician (compute to the message; a causal sentence only via econometrician)
+1. visualizer (one figure per message)
+1. result-reporter / writing-support-team (the deck or brief, with the sentences the presenter may say)
+1. consultant (to the client)
 
 ### data-pipeline
 

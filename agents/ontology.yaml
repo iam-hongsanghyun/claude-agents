@@ -89,6 +89,10 @@ agents:
   - {id: investment-asset-team, tier: "4", scope: user, model: opus, access: research, role: "Portfolio/equity/bond/credit/risk research → structured investment report"}
   - {id: kr-power-data-scout,   tier: "4", scope: user, model: opus, access: research, role: "Korean datasets + what a metric actually measures (설비 vs 발전, 발전단 vs 송전단, SMP vs 정산단가)"}
   - {id: writing-support-team,  tier: "4", scope: user, model: opus, access: research, role: "Reports, white papers, briefs, memos, presentations; parallel KO/EN with a terminology glossary"}
+  - {id: ir-disclosure-analyst,        tier: "4", scope: user, model: opus, access: research,  role: "Company IR / operating releases as data — basis, boundary, period, granularity, vintage per release; reporting-basis map; build-vs-buy verdict on licensed datasets"}
+  - {id: transport-emissions-reviewer, tier: "4", scope: user, model: opus, access: read-only, role: "Methodology gate for road-fleet and shipping emissions models — segment ratio, real-world factors, grid rule, lifetime, WtW/TtW, P10/P50/P90; read-only, before publication"}
+  - {id: esg-disclosure-analyst,       tier: "4", scope: user, model: opus, access: research,  role: "Disclosure standards — GHG Protocol / Scope 3 Cat. 11, avoided emissions, PCAF, ISSB & adoptions, CSRD, SBTi, taxonomies; positions a metric, reads a disclosure, writes for standard-setters"}
+  - {id: policy-analyst,               tier: "4", scope: user, model: opus, access: research,  role: "Instrument register, target anatomy, policy use-case fit, audience and storyline — shaped before computing; comparison, never cause"}
 
   # Project-scoped — mirrored under agents/project/, NOT installed globally
   - {id: maritime-regulation-analyst, tier: "3", scope: project, project: IRI-P1, model: opus,   access: read-write, role: "Primary-source IMO regulation — adopted vs draft text, GFI/RU/SU basis, vessel-activity data"}
@@ -219,6 +223,44 @@ relations:
   - {from: doc-writer, type: delegates_to, to: writing-support-team, note: reports/memos/presentations}
   - {from: writing-support-team, type: delegates_to, to: doc-writer, note: code-facing docs}
 
+  # --- Disclosure, policy and methodology (Tier 4 additions) ---
+  - {from: ir-disclosure-analyst, type: hands_off_to, to: data-collector, note: "dossier + reporting-basis map → build the fetcher"}
+  - {from: ir-disclosure-analyst, type: hands_off_to, to: source-reconciliation-analyst, note: "two releases disagree on the same quantity"}
+  - {from: ir-disclosure-analyst, type: hands_off_to, to: provenance-auditor, note: "terms of use and republication grain"}
+  - {from: ir-disclosure-analyst, type: delegates_to, to: investment-asset-team, note: "financial IR — valuation, guidance, capital structure"}
+  - {from: ir-disclosure-analyst, type: delegates_to, to: kr-power-data-scout, note: "Korean public statistics"}
+  - {from: ir-disclosure-analyst, type: delegates_to, to: esg-disclosure-analyst, note: "how a climate disclosure conforms to a standard"}
+  - {from: data-collector, type: delegates_to, to: ir-disclosure-analyst, note: "what a company's reported figure measures"}
+  - {from: kr-power-data-scout, type: delegates_to, to: ir-disclosure-analyst, note: "company IR and operating releases"}
+  - {from: source-reconciliation-analyst, type: delegates_to, to: ir-disclosure-analyst, note: "acquiring company releases"}
+  - {from: investment-asset-team, type: delegates_to, to: ir-disclosure-analyst, note: "operating (non-financial) releases as data"}
+  - {from: transport-emissions-reviewer, type: gates, to: result-reporter, note: "no transport-emissions figure publishes before the methodology register is Pass"}
+  - {from: transport-emissions-reviewer, type: delegates_to, to: math-reviewer, note: "code vs its equations"}
+  - {from: transport-emissions-reviewer, type: delegates_to, to: provenance-auditor, note: "whether figures trace"}
+  - {from: transport-emissions-reviewer, type: delegates_to, to: esg-disclosure-analyst, note: "the reporting standard the result sits under"}
+  - {from: transport-emissions-reviewer, type: delegates_to, to: ir-disclosure-analyst, note: "the sales / fleet data itself"}
+  - {from: math-reviewer, type: delegates_to, to: transport-emissions-reviewer, note: "domain methodology calls in a transport model"}
+  - {from: climate-risk-modeller, type: hands_off_to, to: transport-emissions-reviewer, note: "methodology review before publication"}
+  - {from: data-scientist, type: hands_off_to, to: transport-emissions-reviewer, note: "a fleet-emissions result before it publishes"}
+  - {from: esg-disclosure-analyst, type: hands_off_to, to: writing-support-team, note: "standard-mapped text into the white paper or brief"}
+  - {from: esg-disclosure-analyst, type: delegates_to, to: energy-finance-team, note: "ESG performance research across companies"}
+  - {from: esg-disclosure-analyst, type: delegates_to, to: investment-asset-team, note: "whether a pledge shows up in the holdings"}
+  - {from: esg-disclosure-analyst, type: delegates_to, to: transport-emissions-reviewer, note: "vehicle / vessel emissions methodology"}
+  - {from: esg-disclosure-analyst, type: delegates_to, to: policy-analyst, note: "instruments and targets"}
+  - {from: esg-disclosure-analyst, type: delegates_to, to: ir-disclosure-analyst, note: "operating releases as data"}
+  - {from: energy-finance-team, type: delegates_to, to: esg-disclosure-analyst, note: "disclosure-standard conformance"}
+  - {from: investment-asset-team, type: delegates_to, to: esg-disclosure-analyst, note: "how a disclosure conforms to GHG Protocol / PCAF / ISSB"}
+  - {from: policy-analyst, type: hands_off_to, to: result-reporter, note: "the storyline and framing rules, before the deck"}
+  - {from: policy-analyst, type: hands_off_to, to: writing-support-team, note: "message, register and framing rules for the brief"}
+  - {from: policy-analyst, type: hands_off_to, to: consultant, note: "the storyline reaches the client through consultant"}
+  - {from: policy-analyst, type: delegates_to, to: econometrician, note: "any sentence that says a policy had an effect"}
+  - {from: policy-analyst, type: delegates_to, to: esg-disclosure-analyst, note: "what a disclosure regime requires a company to publish"}
+  - {from: policy-analyst, type: delegates_to, to: energy-finance-team, note: "market and company research"}
+  - {from: energy-finance-team, type: delegates_to, to: policy-analyst, note: "instrument register, target anatomy, storyline"}
+  - {from: econometrician, type: delegates_to, to: policy-analyst, note: "what the policy requires and how to frame it"}
+  - {from: writing-support-team, type: delegates_to, to: policy-analyst, note: "the storyline comes first"}
+  - {from: consultant, type: delegates_to, to: policy-analyst, note: "the policy storyline"}
+
   # --- Project agents: origin, specialization, promotion ---
   - {from: research-director, type: authored, to: maritime-regulation-analyst}
   - {from: research-director, type: authored, to: shipping-transition-expert}
@@ -237,7 +279,7 @@ relations:
   - {from: system-value-analyst, type: specializes, to: optimization-modeller}
   - {from: data-analyst, type: specializes, to: provenance-auditor}
   - {from: interim-reporter, type: specializes, to: report-manager}
-  - {from: korea-policy-strategist, type: specializes, to: energy-finance-team}
+  - {from: korea-policy-strategist, type: generalized_as, to: policy-analyst}
   - {from: pipeline-orchestrator, type: specializes, to: planner-and-qc-lead}
   - {from: leader, type: specializes, to: planner-and-qc-lead}
 
@@ -288,7 +330,28 @@ workflows:
   - id: refactor
     steps: [refactor-architect, auditor]
   - id: research-to-report
-    steps: [energy-finance-team / investment-asset-team, writing-support-team]
+    steps: [policy-analyst / esg-disclosure-analyst (framing and standards first), energy-finance-team / investment-asset-team, writing-support-team]
+  - id: company-disclosure-data
+    steps:
+      - "ir-disclosure-analyst (five attributes per release; reporting-basis map across companies; build-vs-buy verdict)"
+      - "data-collector (the fetcher, or the pinned hand-gathered file under the project's source policy)"
+      - source-reconciliation-analyst (where two releases disagree)
+      - provenance-auditor (terms of use and republication grain)
+      - data-scientist
+  - id: methodology-before-publication
+    steps:
+      - "transport-emissions-reviewer (methodology register — every choice settled, disclosed, wrong, or a client ruling)"
+      - math-reviewer (code vs equations)
+      - "esg-disclosure-analyst (where the metric sits against GHG Protocol / Scope 3 Cat. 11 / avoided emissions / PCAF)"
+      - provenance-auditor (every figure traces)
+      - "result-reporter (the disclosures travel beside the headline figure)"
+  - id: policy-storyline
+    steps:
+      - "policy-analyst (instrument register + target anatomy + use-case fit + the message, BEFORE computing)"
+      - "data-scientist / econometrician (compute to the message; a causal sentence only via econometrician)"
+      - visualizer (one figure per message)
+      - "result-reporter / writing-support-team (the deck or brief, with the sentences the presenter may say)"
+      - consultant (to the client)
   - id: data-pipeline
     steps: [kr-power-data-scout, data-collector, source-reconciliation-analyst, provenance-auditor, data-scientist]
   - id: energy-model
