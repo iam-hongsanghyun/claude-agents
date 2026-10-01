@@ -34,7 +34,7 @@ contradict them; if it does, the description wins.
 | | `climate-risk-modeller` | CLIMADA physical risk, NGFS transition risk | sonnet |
 | | `gis-analyst` | CRS, spatial joins, raster/vector | sonnet |
 | Data & output | `data-collector` | Ingestion pipelines in code | sonnet |
-| | `pipeline-builder` | The pipeline in code: stage graph, runner, hand-off schemas, incremental re-runs | sonnet |
+| | `pipeline-visualizer` | Diagram of an existing pipeline, generated from its registry and code | sonnet |
 | | `visualizer` | Figures, maps, report pages | sonnet |
 | | `doc-writer` | README, CLI manual, tutorial, CHANGELOG | haiku |
 | Platform | `mcp-server-engineer` | MCP tool surface | sonnet |
@@ -57,7 +57,7 @@ task decomposition and mathematical verification. Escalate one task, not the age
 ```
 feature    planner-and-qc-lead → developer | web-developer → tester → reviewer (+ math-reviewer if math changed)
 bug        debugger → tester → reviewer
-pipeline   data-scout → data-collector → pipeline-builder → data-scientist
+pipeline   data-scout → data-collector → data-scientist   (pipeline-visualizer to draw what exists)
 research   policy-analyst (message) → energy-finance-team | data-scientist → writing-support-team
 delivery   result-reporter → provenance-auditor → consultant
 ```
