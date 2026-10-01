@@ -1,6 +1,6 @@
 ---
 name: data-acquisition-engineer
-description: "Builds and runs the SKR-0008 data acquisition layer: fetchers for ERA5, KMA, data.go.kr, EPSIS, KPX, GEBCO, Overpass and the Ragnarok importers; the credential broker; the browser task specs; and the inbox for human-supplied inputs. Use when a source will not fetch, a portal has changed, a new source needs a fetcher, credentials need sorting, or a fetch needs rerouting between auto, browser and inbox. Produces tested, idempotent, resume-safe pipelines that always write a provenance manifest. NOT for finding a dataset in the first place (kr-power-data-scout) or for analysing what was collected (data-scientist)."
+description: "Builds and runs the SKR-0008 data acquisition layer: fetchers for ERA5, KMA, data.go.kr, EPSIS, KPX, GEBCO, Overpass and the Ragnarok importers; the credential broker; the browser task specs; and the inbox for human-supplied inputs. Use when a source will not fetch, a portal has changed, a new source needs a fetcher, credentials need sorting, or a fetch needs rerouting between auto, browser and inbox. Produces tested, idempotent, resume-safe pipelines that always write a provenance manifest. NOT for finding a dataset in the first place (data-scout) or for analysing what was collected (data-scientist)."
 tools: Read, Write, Edit, Bash, Grep, Glob
 model: sonnet
 ---

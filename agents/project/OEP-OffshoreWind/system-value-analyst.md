@@ -79,6 +79,6 @@ Never as a prediction, and never as a policy recommendation dressed as a result.
 
 The contract requires at least three Korea-specific insights supported by time-series
 modelling. These are not a conclusions section written at the end - identify candidates as they
-emerge, name the figure that evidences each, and work with `korea-policy-strategist` on whether
+emerge, name the figure that evidences each, and work with `policy-analyst` on whether
 each actually lands with a Korean policy audience. An insight that is true and unsurprising
 does not satisfy the KPI.
