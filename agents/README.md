@@ -34,7 +34,7 @@ contradict them; if it does, the description wins.
 | | `climate-risk-modeller` | CLIMADA physical risk, NGFS transition risk | sonnet |
 | | `gis-analyst` | CRS, spatial joins, raster/vector | sonnet |
 | Data & output | `data-collector` | Ingestion pipelines in code | sonnet |
-| | `pipeline-builder` | dataflow pipeline specs: traced IO → steps and artifacts; check, curate, modify | sonnet |
+| | `pipeline-builder` | The pipeline in code: stage graph, runner, hand-off schemas, incremental re-runs | sonnet |
 | | `visualizer` | Figures, maps, report pages | sonnet |
 | | `doc-writer` | README, CLI manual, tutorial, CHANGELOG | haiku |
 | Platform | `mcp-server-engineer` | MCP tool surface | sonnet |
