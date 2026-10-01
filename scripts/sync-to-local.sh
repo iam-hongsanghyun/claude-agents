@@ -31,52 +31,30 @@ chmod +x "$SCRIPTS_DEST/claude-scaffold.sh"
 # Project-scoped agents under agents/project/ are deliberately NOT synced: they belong to a
 # single engagement, not every session. See agents/project/README.md.
 AGENTS=(
-    # Tier 0: Engagement governance (contracted / funded research projects)
-    consultant
-    research-director
-    report-manager
-    log-reporter
-    result-reporter
-    # Tier 1: Workflow orchestration
+    # Governance
+    research-director consultant report-manager log-reporter result-reporter
+    # Orchestration
     planner-and-qc-lead
-    # Tier 2: Code — writing & review
-    developer
-    frontend-developer
-    web-app-engineer
-    tester
-    reviewer
-    math-reviewer
-    auditor
-    provenance-auditor
-    refactor-architect
-    debugger
-    # Tier 3: Code — domain specialists
-    data-scientist
-    econometrician
-    optimization-modeller
-    system-dynamics-modeller
-    computational-economist
-    renewable-resource-scientist
-    climate-risk-modeller
-    gis-analyst
-    data-collector
-    source-reconciliation-analyst
-    mcp-server-engineer
-    plugin-framework-architect
-    agent-app-engineer
-    app-distribution-engineer
-    visualizer
-    doc-writer
-    # Tier 4: Research & analysis (no code)
-    energy-finance-team
-    investment-asset-team
-    kr-power-data-scout
-    writing-support-team
-    ir-disclosure-analyst
-    transport-emissions-reviewer
-    esg-disclosure-analyst
-    policy-analyst
+    # Code and gates
+    developer web-developer debugger tester reviewer math-reviewer provenance-auditor
+    # Modelling
+    data-scientist econometrician optimization-modeller system-dynamics-modeller
+    computational-economist renewable-resource-scientist climate-risk-modeller gis-analyst
+    # Data, output, platform
+    data-collector visualizer doc-writer
+    mcp-server-engineer agent-app-engineer plugin-framework-architect app-distribution-engineer
+    # Research (no code)
+    data-scout energy-finance-team investment-asset-team esg-disclosure-analyst
+    policy-analyst transport-emissions-reviewer writing-support-team
 )
+# Agents removed from the pack; deleted from ~/.claude/agents so stale copies stop routing.
+RETIRED=(
+    auditor refactor-architect frontend-developer web-app-engineer
+    kr-power-data-scout ir-disclosure-analyst source-reconciliation-analyst
+)
+for agent in "${RETIRED[@]}"; do
+    rm -f "$AGENTS_DEST/$agent.md"
+done
 for agent in "${AGENTS[@]}"; do
     if [ -f "$REPO_DIR/agents/$agent.md" ]; then
         cp "$REPO_DIR/agents/$agent.md" "$AGENTS_DEST/$agent.md"
