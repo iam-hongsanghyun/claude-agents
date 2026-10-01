@@ -41,7 +41,7 @@ AGENTS=(
     data-scientist econometrician optimization-modeller system-dynamics-modeller
     computational-economist renewable-resource-scientist climate-risk-modeller gis-analyst
     # Data, output, platform
-    data-collector visualizer doc-writer
+    data-collector pipeline-builder visualizer doc-writer
     mcp-server-engineer agent-app-engineer plugin-framework-architect app-distribution-engineer
     # Research (no code)
     data-scout energy-finance-team investment-asset-team esg-disclosure-analyst

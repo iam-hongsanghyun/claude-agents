@@ -8,7 +8,7 @@ This file is the index: the roster and routing below, plus the authoring standar
 Routing boundaries have **one home, the agent's `description`**. This file summarises them and must not
 contradict them; if it does, the description wins.
 
-## Roster (35)
+## Roster (36)
 
 | Group | Agent | Owns | Model |
 |---|---|---|---|
@@ -34,6 +34,7 @@ contradict them; if it does, the description wins.
 | | `climate-risk-modeller` | CLIMADA physical risk, NGFS transition risk | sonnet |
 | | `gis-analyst` | CRS, spatial joins, raster/vector | sonnet |
 | Data & output | `data-collector` | Ingestion pipelines in code | sonnet |
+| | `pipeline-builder` | dataflow pipeline specs: traced IO → steps and artifacts; check, curate, modify | sonnet |
 | | `visualizer` | Figures, maps, report pages | sonnet |
 | | `doc-writer` | README, CLI manual, tutorial, CHANGELOG | haiku |
 | Platform | `mcp-server-engineer` | MCP tool surface | sonnet |
@@ -56,7 +57,7 @@ task decomposition and mathematical verification. Escalate one task, not the age
 ```
 feature    planner-and-qc-lead → developer | web-developer → tester → reviewer (+ math-reviewer if math changed)
 bug        debugger → tester → reviewer
-pipeline   data-scout → data-collector → data-scientist
+pipeline   data-scout → data-collector → pipeline-builder → data-scientist
 research   policy-analyst (message) → energy-finance-team | data-scientist → writing-support-team
 delivery   result-reporter → provenance-auditor → consultant
 ```

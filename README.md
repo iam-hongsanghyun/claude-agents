@@ -16,7 +16,7 @@ This repo is the source of truth. Local working copy at `~/.claude/templates/` i
 | [`.env.example`](./.env.example) | Environment variable template (incl. `RANDOM_SEED`). |
 | [`.gitignore`](./.gitignore) | Python + scientific-stack ignores (`data/`, `mlruns/`, `*.parquet`, etc.). |
 | [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) | uv-based CI (Python 3.11 + 3.12). |
-| [`agents/`](./agents/) | 35 user-level subagents installed to `~/.claude/agents/` — index and authoring standard in [`agents/README.md`](./agents/README.md). |
+| [`agents/`](./agents/) | 36 user-level subagents installed to `~/.claude/agents/` — index and authoring standard in [`agents/README.md`](./agents/README.md). |
 | [`scripts/claude-scaffold.sh`](./scripts/claude-scaffold.sh) | Bootstrap a new project from these templates. |
 | [`scripts/sync-to-local.sh`](./scripts/sync-to-local.sh) | Pull updates from this repo into `~/.claude/{templates,agents}/`. |
 | [`agents/project/`](./agents/project/README.md) | Registry of project-authored agents — mirrored for visibility, **not** installed globally. |
@@ -26,7 +26,7 @@ This repo is the source of truth. Local working copy at `~/.claude/templates/` i
 
 ## Subagents
 
-`scripts/install.sh` or `scripts/sync-to-local.sh` installs the 35 user-level agents to `~/.claude/agents/`.
+`scripts/install.sh` or `scripts/sync-to-local.sh` installs the 36 user-level agents to `~/.claude/agents/`.
 The roster, routing, common chains and the authoring standard live in one place:
 [`agents/README.md`](./agents/README.md). Project-authored agents are registered in
 [`agents/project/README.md`](./agents/project/README.md) and are not installed globally.
